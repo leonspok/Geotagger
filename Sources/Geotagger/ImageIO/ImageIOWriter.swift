@@ -23,16 +23,29 @@ public struct ImageIOWriter: ImageIOWriterProtocol {
               let sourceUTType = CGImageSourceGetType(imageSource) else {
             throw ImageIOError.canNotCreateImageSource
         }
-        var metadata: [CFString: Any] = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [CFString: Any] ?? [:]
-        metadata[kCGImagePropertyGPSDictionary] = geotag.asGPSDictionary
         
+        let mutableMetadata: CGMutableImageMetadata = {
+            if let originalMetadata = CGImageSourceCopyMetadataAtIndex(imageSource, 0, nil),
+               let mutableCopy = CGImageMetadataCreateMutableCopy(originalMetadata) {
+                return mutableCopy
+            } else {
+                return CGImageMetadataCreateMutable()
+            }
+        }()
+
+        for (key, value) in geotag.asGPSDictionary {
+            CGImageMetadataSetValueMatchingImageProperty(mutableMetadata, kCGImagePropertyGPSDictionary, key, value as CFTypeRef)
+        }
+                
         guard let imageDestination = CGImageDestinationCreateWithURL(destinationURL as CFURL, sourceUTType, 1, nil) else {
             throw ImageIOError.canNotCreateImageDestination
         }
         
-        CGImageDestinationAddImageFromSource(imageDestination, imageSource, 0, metadata as CFDictionary)
-        guard CGImageDestinationFinalize(imageDestination) else {
-            throw ImageIOError.canNotFinalizeImageDestination
-        }
+        
+        let options: [CFString: Any] = [
+            kCGImageDestinationMetadata: mutableMetadata,
+            kCGImageDestinationMergeMetadata: true
+        ]
+        CGImageDestinationCopyImageSource(imageDestination, imageSource, options as CFDictionary, nil)
     }
 }

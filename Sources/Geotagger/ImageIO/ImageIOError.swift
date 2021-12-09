@@ -9,6 +9,7 @@ import Foundation
 
 public enum ImageIOError: Error {
     case canNotCreateImageSource
+    case canNotCopyImageSource
     case canNotCreateImageDestination
     case canNotFinalizeImageDestination
 }

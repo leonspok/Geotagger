@@ -8,9 +8,9 @@
 import Foundation
 import Geotagger
 
-let anchorsDirectoryURL = URL(fileURLWithPath: "/Users/igorsavelev/Desktop/iphone")
-let targetPhotosDirectoryURL = URL(fileURLWithPath: "/Users/igorsavelev/Desktop/canon")
-let outputDirectoryURL = URL(fileURLWithPath: "/Users/igorsavelev/Desktop/output")
+let anchorsDirectoryURL = URL(fileURLWithPath: "/Users/igorsavelev/Desktop/1")
+let targetPhotosDirectoryURL = URL(fileURLWithPath: "/Users/igorsavelev/Desktop/2")
+let outputDirectoryURL = URL(fileURLWithPath: "/Users/igorsavelev/Desktop/3")
 
 let imageIOReader = ImageIOReader()
 let imageIOWriter = ImageIOWriter()
