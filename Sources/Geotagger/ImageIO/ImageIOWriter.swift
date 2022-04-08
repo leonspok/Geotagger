@@ -36,6 +36,11 @@ public struct ImageIOWriter: ImageIOWriterProtocol {
         for (key, value) in geotag.asGPSDictionary {
             CGImageMetadataSetValueMatchingImageProperty(mutableMetadata, kCGImagePropertyGPSDictionary, key, value as CFTypeRef)
         }
+        
+        let directoryURL = destinationURL.deletingLastPathComponent()
+        if FileManager.default.fileExists(atPath: directoryURL.path) == false {
+            try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+        }
                 
         guard let imageDestination = CGImageDestinationCreateWithURL(destinationURL as CFURL, sourceUTType, 1, nil) else {
             throw ImageIOError.canNotCreateImageDestination

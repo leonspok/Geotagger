@@ -8,6 +8,7 @@
 import Foundation
 
 public protocol GeotaggingItemProtocol {
+    var id: String { get }
     var date: Date? { get }
     
     func skip(with error: Error)

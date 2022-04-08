@@ -23,7 +23,8 @@ public final class GPXGeoAnchorsLoader: GeoAnchorsLoaderProtocol {
         guard let gpx = gpxParser.parsedData() else {
             throw GPXError.parsingError
         }
-        return gpx.waypoints.compactMap { waypoint in
+        let waypoints = gpx.waypoints + gpx.tracks.flatMap(\.segments).flatMap(\.points)
+        return waypoints.compactMap { waypoint in
             return GeoAnchor(gpxWaypoint: waypoint)
         }
     }
