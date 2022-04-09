@@ -13,7 +13,7 @@ public enum CircularCoordinate {
 }
 
 extension CircularCoordinate {
-    var degrees: Double {
+    public var degrees: Double {
         switch self {
         case .degrees(let degrees):
             return degrees
@@ -22,7 +22,7 @@ extension CircularCoordinate {
         }
     }
     
-    var radians: Double {
+    public var radians: Double {
         switch self {
         case .degrees(let degrees):
             return degrees * .pi / 180
