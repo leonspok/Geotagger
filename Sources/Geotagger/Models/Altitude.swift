@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Altitude {
+public struct Altitude: Hashable {
     
     public var value: Double
     public var reference: Double

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Geotag {
+public struct Geotag: Hashable {
     public let location: Location
     
     public init(location: Location) {
