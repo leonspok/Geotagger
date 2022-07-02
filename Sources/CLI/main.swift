@@ -26,16 +26,16 @@ struct Tag: ParsableCommand {
     @Option(name: .shortAndLong, help: "Path to output directory or file. If not provided, original files will be overwritten.")
     var output: String?
     
-    @Option(name: .shortAndLong, help: "Geotagger will search for the closest location anchor to the moment when photo was taken within this time range and reuse anchor's location as an exact location of the photo.")
+    @Option(name: .long, help: "Geotagger will search for the closest location anchor to the moment when photo was taken within this time range and reuse anchor's location as an exact location of the photo.")
     var exactMatchRange: TimeInterval = 60
     
-    @Option(name: .shortAndLong, help: "Geotagger will use all location anchors within this time range from the moment when photo was taken and calculate the location of the photo by interpolating these anchors location.")
+    @Option(name: .long, help: "Geotagger will use all location anchors within this time range from the moment when photo was taken and calculate the location of the photo by interpolating these anchors location.")
     var interpolationMatchRange: TimeInterval = 240
     
-    @Flag(help: "If enabled, then photos that already have location tag will be tagged again.")
+    @Flag(name: .long, help: "If enabled, then photos that already have location tag will be tagged again.")
     var includeAlreadyTagged: Bool = false
     
-    @Flag(help: "Enable additional logging.")
+    @Flag(name: .long, help: "Enable additional logging.")
     var verbose: Bool = false
     
     mutating func run() throws {
@@ -47,7 +47,7 @@ struct Tag: ParsableCommand {
                 
         let anchorsURL = URL(fileURLWithPath: self.anchors)
         var isAnchorsURLDirectory: ObjCBool = false
-        if fileManager.fileExists(atPath: anchors, isDirectory: &isAnchorsURLDirectory),
+        if fileManager.fileExists(atPath: self.anchors, isDirectory: &isAnchorsURLDirectory),
            isAnchorsURLDirectory.boolValue {
             let anchorsURL = URL(fileURLWithPath: self.anchors, isDirectory: true)
             try geotagger.loadAnchorsFromGPXFilesFromDirectory(anchorsURL, scanSubdirectories: true)
@@ -69,7 +69,7 @@ struct Tag: ParsableCommand {
         
         let counter = GeotaggingCounter()
         
-        if fileManager.fileExists(atPath: input, isDirectory: &isInputURLDirectory),
+        if fileManager.fileExists(atPath: self.input, isDirectory: &isInputURLDirectory),
            isInputURLDirectory.boolValue {
             let inputURL = URL(fileURLWithPath: self.input, isDirectory: true)
             if let output = output,

@@ -49,6 +49,9 @@ extension Geotagger {
         let imageReader = ImageIOReader()
         let imageWriter = ImageIOWriter()
         let geotaggingItems = try urls.compactMap { url -> GeotaggingItemProtocol? in
+            if verbose {
+                print("Loading \(url.lastPathComponent)...")
+            }
             if includeAlreadyTagged == false,
                (try imageReader.readGeotagFromPhoto(at: url)) != nil {
                 return nil
@@ -76,6 +79,7 @@ extension Geotagger {
             .filter(\.isPhotoFileURL)
         try self.tagPhotos(
             at: photoURLs,
+            includeAlreadyTagged: includeAlreadyTagged,
             counter: counter,
             verbose: verbose,
             saveTo: { photoURL in
