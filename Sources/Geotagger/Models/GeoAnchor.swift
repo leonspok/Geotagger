@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct GeoAnchor: Hashable {
+public struct GeoAnchor: Hashable, Sendable {
     public let date: Date
     public let location: Location
     

@@ -13,7 +13,7 @@ struct LoggingGeotaggingItem: GeotaggingItemProtocol {
     private let item: GeotaggingItemProtocol
     private let counter: GeotaggingCounter?
     private let verbose: Bool
-    
+
     init(_ item: GeotaggingItemProtocol,
          counter: GeotaggingCounter? = nil,
          verbose: Bool = false) {
@@ -32,19 +32,33 @@ struct LoggingGeotaggingItem: GeotaggingItemProtocol {
         return self.item.date
     }
     
-    func apply(_ geotag: Geotag) throws {
-        try self.item.apply(geotag)
-        self.counter?.incrementTagged()
-        if self.verbose {
-            print("\(self.id): found geotag")
-        }
+    func apply(_ geotag: Geotag) async throws {
+        try await self.item.apply(geotag)
+        self.logApplication()
     }
     
     func skip(with error: Error) {
-        if self.verbose {
-            print("\(self.id): skipped with \(error)")
-        }
         self.item.skip(with: error)
-        self.counter?.incrementSkipped()
+        self.logSkip(with: error)
+    }
+
+    // MARK: - Private methods
+
+    private func logApplication() {
+        Task { @MainActor in
+            self.counter?.incrementTagged()
+            if self.verbose {
+                print("\(self.id): found geotag")
+            }
+        }
+    }
+
+    private func logSkip(with error: Error) {
+        Task { @MainActor in
+            if self.verbose {
+                print("\(self.id): skipped with \(error)")
+            }
+            self.counter?.incrementSkipped()
+        }
     }
 }

@@ -45,7 +45,7 @@ extension Geotagger {
                    includeAlreadyTagged: Bool = false,
                    counter: GeotaggingCounter? = nil,
                    verbose: Bool = false,
-                   saveTo: @escaping SaveToClosure = { $0 }) throws {
+                   saveTo: @escaping SaveToClosure = { $0 }) async throws {
         let imageReader = ImageIOReader()
         let imageWriter = ImageIOWriter()
         let geotaggingItems = try urls.compactMap { url -> GeotaggingItemProtocol? in
@@ -65,7 +65,7 @@ extension Geotagger {
             return LoggingGeotaggingItem(imageItem, counter: counter, verbose: verbose)
         }
         print("Found \(geotaggingItems.count) items to tag")
-        try self.tag(geotaggingItems)
+        try await self.tag(geotaggingItems)
     }
     
     func tagPhotosInDirectoryAt(_ directoryURL: URL,
@@ -73,11 +73,11 @@ extension Geotagger {
                                 outputDirectoryURL: URL? = nil,
                                 includeAlreadyTagged: Bool = false,
                                 counter: GeotaggingCounter? = nil,
-                                verbose: Bool = false) throws {
+                                verbose: Bool = false) async throws {
         let directoryScanner = DirectoryScanner()
         let photoURLs = try directoryScanner.scanContents(of: directoryURL, recursive: scanSubdirectories, includingPropertiesForKeys: [.contentTypeKey], options: [.skipsHiddenFiles])
             .filter(\.isPhotoFileURL)
-        try self.tagPhotos(
+        try await self.tagPhotos(
             at: photoURLs,
             includeAlreadyTagged: includeAlreadyTagged,
             counter: counter,

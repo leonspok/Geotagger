@@ -7,14 +7,24 @@
 
 import Foundation
 
-public final class GeotagFinder {
-    
+public struct GeotagFinder: Sendable {
+
+    public init(
+        exactMatchTimeRange: TimeInterval = 0,
+        interpolationMatchTimeRange: TimeInterval? = nil,
+        locationReferences: LocationReferences = LocationReferences()
+    ) {
+        self.exactMatchTimeRange = exactMatchTimeRange
+        self.interpolationMatchTimeRange = interpolationMatchTimeRange
+        self.locationReferences = locationReferences
+    }
+
     // MARK: - Public API
-    
-    public var exactMatchTimeRange: TimeInterval = 0
-    public var interpolationMatchTimeRange: TimeInterval?
-    public var locationReferences: LocationReferences = LocationReferences()
-    
+
+    public let exactMatchTimeRange: TimeInterval
+    public let interpolationMatchTimeRange: TimeInterval?
+    public let locationReferences: LocationReferences
+
     public func findGeotag(for item: GeotaggingItemProtocol, using anchors: [GeoAnchor]) throws -> Geotag {
         guard let date = item.date else {
             throw GeotaggingError.canNotReadDateInformation

@@ -7,8 +7,8 @@
 
 import Foundation
 
-public struct Altitude: Hashable {
-    
+public struct Altitude: Hashable, Sendable {
+
     public var value: Double
     public var reference: Double
     

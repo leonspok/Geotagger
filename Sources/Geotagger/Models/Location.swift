@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Location: Hashable {
+public struct Location: Hashable, Sendable {
     
     public var latitude: CircularCoordinate
     public var longitude: CircularCoordinate

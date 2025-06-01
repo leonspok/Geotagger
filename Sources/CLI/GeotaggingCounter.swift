@@ -6,16 +6,29 @@
 //
 
 import Foundation
+import os
 
-final class GeotaggingCounter {
-    private(set) var tagged: UInt = 0
-    private(set) var skipped: UInt = 0
-    
+final class GeotaggingCounter: @unchecked Sendable {
+    var tagged: UInt {
+        return self._tagged.withLock { $0 }
+    }
+
+    var skipped: UInt {
+        return self._skipped.withLock { $0 }
+    }
+
+    private var _tagged: OSAllocatedUnfairLock<UInt> = .init(initialState: 0)
+    private var _skipped: OSAllocatedUnfairLock<UInt> = .init(initialState: 0)
+
     func incrementTagged() {
-        self.tagged += 1
+        self._tagged.withLock {
+            $0 += 1
+        }
     }
     
     func incrementSkipped() {
-        self.skipped += 1
+        self._skipped.withLock {
+            $0 += 1
+        }
     }
 }

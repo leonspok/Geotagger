@@ -1,4 +1,4 @@
-// swift-tools-version:5.5
+// swift-tools-version:6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "Geotagger",
     platforms: [
-        .macOS("11.0")
+        .macOS(.v13)
     ],
     products: [
         .executable(
@@ -16,6 +16,10 @@ let package = Package(
         .library(
             name: "Geotagger",
             targets: ["Geotagger"]
+        ),
+        .library(
+            name: "PhotoKitGeotagger",
+            targets: ["PhotoKitGeotagger"]
         ),
     ],
     dependencies: [
@@ -36,6 +40,12 @@ let package = Package(
             name: "Geotagger",
             dependencies: [
                 "CoreGPX"
+            ]
+        ),
+        .target(
+            name: "PhotoKitGeotagger",
+            dependencies: [
+                "Geotagger"
             ]
         ),
         .testTarget(

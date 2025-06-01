@@ -16,7 +16,7 @@ enum CLIError: Error {
     case outputIsNotADirectory
 }
 
-struct Tag: ParsableCommand {
+struct Tag: AsyncParsableCommand {
     @Option(name: .shortAndLong, help: "Path to directory or file containing GPX or image files that will be used as location anchors")
     var anchors: String
     
@@ -38,7 +38,7 @@ struct Tag: ParsableCommand {
     @Flag(name: .long, help: "Enable additional logging.")
     var verbose: Bool = false
     
-    mutating func run() throws {
+    mutating func run() async throws {
         let geotagger = Geotagger()
         geotagger.exactMatchTimeRange = self.exactMatchRange
         geotagger.interpolationMatchTimeRange = self.interpolationMatchRange
@@ -79,7 +79,7 @@ struct Tag: ParsableCommand {
             }
             let outputURL = self.output.flatMap { URL(fileURLWithPath: $0, isDirectory: true) }
             print("Started tagging...")
-            try geotagger.tagPhotosInDirectoryAt(
+            try await geotagger.tagPhotosInDirectoryAt(
                 inputURL,
                 scanSubdirectories: true,
                 outputDirectoryURL: outputURL,
@@ -91,7 +91,7 @@ struct Tag: ParsableCommand {
             let inputURL = URL(fileURLWithPath: self.input)
             let outputURL = self.output.flatMap { URL(fileURLWithPath: $0) }
             print("Started tagging...")
-            try geotagger.tagPhotos(
+            try await geotagger.tagPhotos(
                 at: [inputURL],
                 includeAlreadyTagged: self.includeAlreadyTagged,
                 counter: counter,

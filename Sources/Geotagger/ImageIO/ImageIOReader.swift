@@ -8,7 +8,7 @@
 import Foundation
 import ImageIO
 
-public protocol ImageIOReaderProtocol {
+public protocol ImageIOReaderProtocol: Sendable {
     func readDateFromPhoto(at url: URL) throws -> Date?
     func readGeotagFromPhoto(at url: URL) throws -> Geotag?
     func readGeoAnchorFromPhoto(at url: URL) throws -> GeoAnchor?

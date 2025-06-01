@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum CircularCoordinate {
+public enum CircularCoordinate: Sendable {
     case degrees(Double)
     case radians(Double)
 }
