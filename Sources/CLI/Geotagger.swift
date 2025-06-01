@@ -1,8 +1,8 @@
 //
-//  File.swift
+//  Geotagger.swift
 //  
 //
-//  Created by Igor Savelev on 01/12/2021.
+//  Created on 06/01/2025.
 //
 
 import Foundation
@@ -16,7 +16,13 @@ enum CLIError: Error {
     case outputIsNotADirectory
 }
 
-struct Tag: AsyncParsableCommand {
+@main
+struct GeoTaggerCLI: AsyncParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "geotagger",
+        abstract: "A tool for geotagging photos using GPX tracks and other geotagged photos as location references."
+    )
+    
     @Option(name: .shortAndLong, help: "Path to directory or file containing GPX or image files that will be used as location anchors")
     var anchors: String
     
@@ -33,12 +39,12 @@ struct Tag: AsyncParsableCommand {
     var interpolationMatchRange: TimeInterval = 240
     
     @Flag(name: .long, help: "If enabled, then photos that already have location tag will be tagged again.")
-    var includeAlreadyTagged: Bool = false
+    var includeAlreadyTagged = false
     
     @Flag(name: .long, help: "Enable additional logging.")
-    var verbose: Bool = false
+    var verbose = false
     
-    mutating func run() async throws {
+    func run() async throws {
         let geotagger = Geotagger()
         geotagger.exactMatchTimeRange = self.exactMatchRange
         geotagger.interpolationMatchTimeRange = self.interpolationMatchRange
@@ -107,5 +113,3 @@ struct Tag: AsyncParsableCommand {
         print("Skipped: \(counter.skipped)")
     }
 }
-
-Tag.main()
