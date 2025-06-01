@@ -1,4 +1,4 @@
-// swift-tools-version:5.5
+// swift-tools-version:6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "Geotagger",
     platforms: [
-        .macOS("11.0")
+        .macOS(.v13)
     ],
     products: [
         .executable(
@@ -17,10 +17,14 @@ let package = Package(
             name: "Geotagger",
             targets: ["Geotagger"]
         ),
+        .library(
+            name: "PhotoKitGeotagger",
+            targets: ["PhotoKitGeotagger"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/vincentneo/CoreGPX", .upToNextMinor(from: "0.9.0")),
-        .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMajor(from: "1.1.1"))
+        .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMajor(from: "1.5.1"))
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -36,6 +40,12 @@ let package = Package(
             name: "Geotagger",
             dependencies: [
                 "CoreGPX"
+            ]
+        ),
+        .target(
+            name: "PhotoKitGeotagger",
+            dependencies: [
+                "Geotagger"
             ]
         ),
         .testTarget(

@@ -8,7 +8,7 @@
 import Foundation
 import ImageIO
 
-public protocol ImageIOWriterProtocol {
+public protocol ImageIOWriterProtocol: Sendable {
     func write(_ geotag: Geotag, toPhotoAt sourceURL: URL, saveNewVersionAt destinationURL: URL) throws
 }
 

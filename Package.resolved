@@ -1,25 +1,24 @@
 {
-  "object": {
-    "pins": [
-      {
-        "package": "CoreGPX",
-        "repositoryURL": "https://github.com/vincentneo/CoreGPX",
-        "state": {
-          "branch": null,
-          "revision": "bc61acc0b64f8f09a51811ac0664885af30d0a41",
-          "version": "0.9.0"
-        }
-      },
-      {
-        "package": "swift-argument-parser",
-        "repositoryURL": "https://github.com/apple/swift-argument-parser",
-        "state": {
-          "branch": null,
-          "revision": "82905286cc3f0fa8adc4674bf49437cab65a8373",
-          "version": "1.1.1"
-        }
+  "originHash" : "6a888586c86d4bcb6d96cfe96fd99626da1155e57ee48370a41a4e2ac3ea5a17",
+  "pins" : [
+    {
+      "identity" : "coregpx",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/vincentneo/CoreGPX",
+      "state" : {
+        "revision" : "bc61acc0b64f8f09a51811ac0664885af30d0a41",
+        "version" : "0.9.0"
       }
-    ]
-  },
-  "version": 1
+    },
+    {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser",
+      "state" : {
+        "revision" : "011f0c765fb46d9cac61bca19be0527e99c98c8b",
+        "version" : "1.5.1"
+      }
+    }
+  ],
+  "version" : 3
 }

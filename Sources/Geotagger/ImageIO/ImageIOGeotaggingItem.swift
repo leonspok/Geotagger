@@ -31,7 +31,7 @@ public struct ImageIOGeotaggingItem: GeotaggingItemProtocol {
     
     public func skip(with error: Error) {}
     
-    public func apply(_ geotag: Geotag) throws {
+    public func apply(_ geotag: Geotag) async throws {
         try self.imageIOWriter.write(geotag, toPhotoAt: self.photoURL, saveNewVersionAt: self.outputURL)
     }
     

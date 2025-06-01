@@ -20,17 +20,23 @@ public final class Geotagger {
         self.anchors.removeAll()
     }
     
-    public func tag(_ items: [GeotaggingItemProtocol]) throws {
-        let geotagFinder = GeotagFinder()
-        geotagFinder.exactMatchTimeRange = self.exactMatchTimeRange
-        geotagFinder.interpolationMatchTimeRange = self.interpolationMatchTimeRange
-        geotagFinder.locationReferences = self.locationReferences
-        items.forEach { item in
-            do {
-                let tag = try geotagFinder.findGeotag(for: item, using: self.anchors)
-                try item.apply(tag)
-            } catch let error {
-                item.skip(with: error)
+    public func tag(_ items: [GeotaggingItemProtocol]) async throws {
+        let geotagFinder = GeotagFinder(
+            exactMatchTimeRange: self.exactMatchTimeRange,
+            interpolationMatchTimeRange: self.interpolationMatchTimeRange,
+            locationReferences: self.locationReferences
+        )
+        
+        await withTaskGroup(of: Void.self) { group in
+            for item in items {
+                group.addTask { [anchors = self.anchors] in
+                    do {
+                        let tag = try geotagFinder.findGeotag(for: item, using: anchors)
+                        try await item.apply(tag)
+                    } catch let error {
+                        item.skip(with: error)
+                    }
+                }
             }
         }
     }
