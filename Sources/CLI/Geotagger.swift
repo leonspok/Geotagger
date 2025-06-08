@@ -20,7 +20,8 @@ enum CLIError: Error {
 struct GeoTaggerCLI: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "geotagger",
-        abstract: "A tool for geotagging photos using GPX tracks and other geotagged photos as location references."
+        abstract: "A tool for geotagging photos using GPX tracks and other geotagged photos as location references.",
+        version: Version.full
     )
     
     @Option(name: .shortAndLong, help: "Path to directory or file containing GPX or image files that will be used as location anchors")
