@@ -45,24 +45,37 @@ struct GeoTaggerCLI: AsyncParsableCommand {
     @Flag(name: .long, help: "Enable additional logging.")
     var verbose = false
     
+    @Option(name: .long, help: "Time offset in minutes to apply to anchor timestamps (positive or negative).")
+    var anchorsTimeOffset: Int?
+    
+    @Option(name: .long, help: "Time offset in minutes to apply to photo timestamps (positive or negative).")
+    var photosTimeOffset: Int?
+    
+    @Option(name: .long, help: "Timezone override for photos in format '+05:00', '-08:00', or 'Z'. Only affects EXIF timezone fields, not the actual time used for matching.")
+    var photosTimezoneOverride: String?
+    
     func run() async throws {
         let geotagger = Geotagger()
         geotagger.exactMatchTimeRange = self.exactMatchRange
         geotagger.interpolationMatchTimeRange = self.interpolationMatchRange
         
         let fileManager = FileManager.default
+        
+        // Convert minutes to seconds for time offsets
+        let anchorsTimeOffsetSeconds = self.anchorsTimeOffset.map { TimeInterval($0 * 60) }
+        let photosTimeOffsetSeconds = self.photosTimeOffset.map { TimeInterval($0 * 60) }
                 
         let anchorsURL = URL(fileURLWithPath: self.anchors)
         var isAnchorsURLDirectory: ObjCBool = false
         if fileManager.fileExists(atPath: self.anchors, isDirectory: &isAnchorsURLDirectory),
            isAnchorsURLDirectory.boolValue {
             let anchorsURL = URL(fileURLWithPath: self.anchors, isDirectory: true)
-            try geotagger.loadAnchorsFromGPXFilesFromDirectory(anchorsURL, scanSubdirectories: true)
-            try geotagger.loadAnchorsFromPhotosFromDirectoryAt(anchorsURL, scanSubdirectories: true)
+            try geotagger.loadAnchorsFromGPXFilesFromDirectory(anchorsURL, scanSubdirectories: true, timeOffset: anchorsTimeOffsetSeconds)
+            try geotagger.loadAnchorsFromPhotosFromDirectoryAt(anchorsURL, scanSubdirectories: true, timeOffset: anchorsTimeOffsetSeconds)
         } else if anchorsURL.isGPXFileURL {
-            try geotagger.loadAnchorsFromGPXFiles(at: [anchorsURL])
+            try geotagger.loadAnchorsFromGPXFiles(at: [anchorsURL], timeOffset: anchorsTimeOffsetSeconds)
         } else if anchorsURL.isPhotoFileURL {
-            try geotagger.loadAnchorsFromPhotos(at: [anchorsURL])
+            try geotagger.loadAnchorsFromPhotos(at: [anchorsURL], timeOffset: anchorsTimeOffsetSeconds)
         }
         
         if geotagger.anchors.isEmpty {
@@ -92,7 +105,9 @@ struct GeoTaggerCLI: AsyncParsableCommand {
                 outputDirectoryURL: outputURL,
                 includeAlreadyTagged: self.includeAlreadyTagged,
                 counter: counter,
-                verbose: self.verbose
+                verbose: self.verbose,
+                photoTimeOffset: photosTimeOffsetSeconds,
+                timezoneOverride: self.photosTimezoneOverride
             )
         } else {
             let inputURL = URL(fileURLWithPath: self.input)
@@ -103,6 +118,8 @@ struct GeoTaggerCLI: AsyncParsableCommand {
                 includeAlreadyTagged: self.includeAlreadyTagged,
                 counter: counter,
                 verbose: self.verbose,
+                photoTimeOffset: photosTimeOffsetSeconds,
+                timezoneOverride: self.photosTimezoneOverride,
                 saveTo: { url in
                     return outputURL ?? url
                 }
