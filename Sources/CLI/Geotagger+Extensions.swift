@@ -9,32 +9,43 @@ import Foundation
 import Geotagger
 
 extension Geotagger {
-    func loadAnchorsFromGPXFiles(at urls: [URL]) throws {
+    func loadAnchorsFromGPXFiles(at urls: [URL], timeOffset: TimeInterval? = nil) throws {
         try urls.forEach { url in
-            try self.loadAnchors(with: GPXGeoAnchorsLoader(gpxFileURL: url))
+            let loader = GPXGeoAnchorsLoader(gpxFileURL: url)
+            if let timeOffset = timeOffset {
+                try self.loadAnchors(with: TimeOffsetGeoAnchorsLoader(wrapping: loader, timeOffset: timeOffset))
+            } else {
+                try self.loadAnchors(with: loader)
+            }
         }
     }
     
     func loadAnchorsFromGPXFilesFromDirectory(_ directoryURL: URL,
-                                              scanSubdirectories: Bool = false) throws {
+                                              scanSubdirectories: Bool = false,
+                                              timeOffset: TimeInterval? = nil) throws {
         let directoryScanner = DirectoryScanner()
         let gpxURLs = try directoryScanner.scanContents(of: directoryURL, recursive: scanSubdirectories, includingPropertiesForKeys: [.contentTypeKey], options: [.skipsHiddenFiles])
             .filter(\.isGPXFileURL)
-        try self.loadAnchorsFromGPXFiles(at: gpxURLs)
+        try self.loadAnchorsFromGPXFiles(at: gpxURLs, timeOffset: timeOffset)
     }
     
-    func loadAnchorsFromPhotos(at urls: [URL]) throws {
+    func loadAnchorsFromPhotos(at urls: [URL], timeOffset: TimeInterval? = nil) throws {
         let imageReader = ImageIOReader()
         let imagesAnchorsLoader = ImageIOGeoAnchorsLoader(photoURLs: urls, imageIOReader: imageReader)
-        try self.loadAnchors(with: imagesAnchorsLoader)
+        if let timeOffset = timeOffset {
+            try self.loadAnchors(with: TimeOffsetGeoAnchorsLoader(wrapping: imagesAnchorsLoader, timeOffset: timeOffset))
+        } else {
+            try self.loadAnchors(with: imagesAnchorsLoader)
+        }
     }
     
     func loadAnchorsFromPhotosFromDirectoryAt(_ directoryURL: URL,
-                                              scanSubdirectories: Bool = false) throws {
+                                              scanSubdirectories: Bool = false,
+                                              timeOffset: TimeInterval? = nil) throws {
         let directoryScanner = DirectoryScanner()
         let photoURLs = try directoryScanner.scanContents(of: directoryURL, recursive: scanSubdirectories, includingPropertiesForKeys: [.contentTypeKey], options: [.skipsHiddenFiles])
             .filter(\.isPhotoFileURL)
-        try self.loadAnchorsFromPhotos(at: photoURLs)
+        try self.loadAnchorsFromPhotos(at: photoURLs, timeOffset: timeOffset)
     }
 }
 
@@ -45,6 +56,8 @@ extension Geotagger {
                    includeAlreadyTagged: Bool = false,
                    counter: GeotaggingCounter? = nil,
                    verbose: Bool = false,
+                   photoTimeOffset: TimeInterval? = nil,
+                   timezoneOverride: String? = nil,
                    saveTo: @escaping SaveToClosure = { $0 }) async throws {
         let imageReader = ImageIOReader()
         let imageWriter = ImageIOWriter()
@@ -60,7 +73,9 @@ extension Geotagger {
                 photoURL: url,
                 outputURL: saveTo(url),
                 imageIOReader: imageReader,
-                imageIOWriter: imageWriter
+                imageIOWriter: imageWriter,
+                timeOffset: photoTimeOffset,
+                timezoneOverride: timezoneOverride
             )
             return LoggingGeotaggingItem(imageItem, counter: counter, verbose: verbose)
         }
@@ -73,7 +88,9 @@ extension Geotagger {
                                 outputDirectoryURL: URL? = nil,
                                 includeAlreadyTagged: Bool = false,
                                 counter: GeotaggingCounter? = nil,
-                                verbose: Bool = false) async throws {
+                                verbose: Bool = false,
+                                photoTimeOffset: TimeInterval? = nil,
+                                timezoneOverride: String? = nil) async throws {
         let directoryScanner = DirectoryScanner()
         let photoURLs = try directoryScanner.scanContents(of: directoryURL, recursive: scanSubdirectories, includingPropertiesForKeys: [.contentTypeKey], options: [.skipsHiddenFiles])
             .filter(\.isPhotoFileURL)
@@ -82,6 +99,8 @@ extension Geotagger {
             includeAlreadyTagged: includeAlreadyTagged,
             counter: counter,
             verbose: verbose,
+            photoTimeOffset: photoTimeOffset,
+            timezoneOverride: timezoneOverride,
             saveTo: { photoURL in
                 guard let outputDirectoryURL = outputDirectoryURL else {
                     return photoURL

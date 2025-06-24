@@ -23,6 +23,15 @@ if [ -n "$LATEST_TAG" ] && [ "v$CURRENT_VERSION" != "$LATEST_TAG" ]; then
     fi
 fi
 
+# Run tests before building
+echo "Running tests..."
+swift test
+if [ $? -ne 0 ]; then
+    echo "Tests failed. Build cancelled."
+    exit 1
+fi
+echo "All tests passed!"
+
 # Set version and commit hash for build
 VERSION=$CURRENT_VERSION
 COMMIT_HASH=$CURRENT_COMMIT
