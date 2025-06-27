@@ -11,6 +11,6 @@ public protocol GeotaggingItemProtocol: Sendable {
     var id: String { get }
     var date: Date? { get }
     
-    func skip(with error: Error)
+    func skip(with error: Error) throws
     func apply(_ geotag: Geotag) async throws
 }

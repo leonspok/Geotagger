@@ -86,19 +86,10 @@ final class TimeOffsetTests: XCTestCase {
             (-34200, "-09:30")
         ]
         
-        // Create a temporary ImageIOGeotaggingItem to test the formatting
-        let mockReader = MockImageIOReader()
-        let mockWriter = MockImageIOWriter()
-        let item = ImageIOGeotaggingItem(
-            photoURL: URL(fileURLWithPath: "/tmp/test.jpg"),
-            outputURL: URL(fileURLWithPath: "/tmp/out.jpg"),
-            imageIOReader: mockReader,
-            imageIOWriter: mockWriter,
-            timezoneOverride: 0
-        )
+        // Test Int extension for formatting seconds to timezone string
         
         for (seconds, expected) in testCases {
-            let formatted = item.formatTimezoneOffset(seconds)
+            let formatted = seconds.formatAsTimezoneOffset()
             XCTAssertEqual(formatted, expected, "Failed for \(seconds) seconds")
         }
     }
@@ -144,6 +135,7 @@ final class TimeOffsetTests: XCTestCase {
         
         // Verify all method signatures exist and can be called
         // We're just testing the API exists, not the actual file writing
+        XCTAssertNotNil(writer.write(geotag:timezoneOverride:adjustedDate:toPhotoAt:saveNewVersionAt:))
         XCTAssertNotNil(writer.write(_:toPhotoAt:saveNewVersionAt:))
         XCTAssertNotNil(writer.write(_:timezoneOverride:toPhotoAt:saveNewVersionAt:))
         XCTAssertNotNil(writer.write(_:timezoneOverride:adjustedDate:toPhotoAt:saveNewVersionAt:))
@@ -200,42 +192,4 @@ extension ImageIOWriter {
     }
 }
 
-// Extension to access private method for testing
-extension ImageIOGeotaggingItem {
-    func formatTimezoneOffset(_ seconds: Int) -> String {
-        if seconds == 0 {
-            return "Z"
-        }
-        
-        let hours = abs(seconds) / 3600
-        let minutes = (abs(seconds) % 3600) / 60
-        let sign = seconds >= 0 ? "+" : "-"
-        
-        return String(format: "%@%02d:%02d", sign, hours, minutes)
-    }
-}
 
-// Mock classes for testing
-private final class MockImageIOReader: @unchecked Sendable, ImageIOReaderProtocol {
-    func readDateFromPhoto(at url: URL) throws -> Date? {
-        return Date()
-    }
-    
-    func readGeotagFromPhoto(at url: URL) throws -> Geotag? {
-        return nil
-    }
-    
-    func readGeoAnchorFromPhoto(at url: URL) throws -> GeoAnchor? {
-        return nil
-    }
-}
-
-private final class MockImageIOWriter: @unchecked Sendable, ImageIOWriterProtocol {
-    func write(_ geotag: Geotag, toPhotoAt sourceURL: URL, saveNewVersionAt destinationURL: URL) throws {}
-    
-    func write(_ geotag: Geotag, timezoneOverride: String?, toPhotoAt sourceURL: URL, saveNewVersionAt destinationURL: URL) throws {}
-    
-    func write(_ geotag: Geotag, timezoneOverride: String?, adjustedDate: Date?, toPhotoAt sourceURL: URL, saveNewVersionAt destinationURL: URL) throws {}
-    
-    func writeTimeAdjustments(timezoneOverride: String?, adjustedDate: Date?, toPhotoAt sourceURL: URL, saveNewVersionAt destinationURL: URL) async throws {}
-}

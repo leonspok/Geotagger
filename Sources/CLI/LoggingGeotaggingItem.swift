@@ -37,8 +37,8 @@ struct LoggingGeotaggingItem: GeotaggingItemProtocol {
         self.logApplication()
     }
     
-    func skip(with error: Error) {
-        self.item.skip(with: error)
+    func skip(with error: Error) throws {
+        try self.item.skip(with: error)
         self.logSkip(with: error)
     }
 

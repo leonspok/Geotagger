@@ -35,7 +35,7 @@ final class MockGeotaggingItem: GeotaggingItemProtocol, @unchecked Sendable {
         }
     }
     
-    func skip(with error: Error) {
+    func skip(with error: Error) throws {
         lock.withLock {
             _skipError = error
         }

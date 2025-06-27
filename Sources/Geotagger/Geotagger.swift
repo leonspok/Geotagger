@@ -34,7 +34,11 @@ public final class Geotagger {
                         let tag = try geotagFinder.findGeotag(for: item, using: anchors)
                         try await item.apply(tag)
                     } catch let error {
-                        item.skip(with: error)
+                        do {
+                            try item.skip(with: error)
+                        } catch {
+                            // If skip also fails, we silently continue to avoid blocking other items
+                        }
                     }
                 }
             }

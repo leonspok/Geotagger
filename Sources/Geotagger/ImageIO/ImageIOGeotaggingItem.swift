@@ -43,34 +43,29 @@ public struct ImageIOGeotaggingItem: GeotaggingItemProtocol {
         }
     }
     
-    public func skip(with error: Error) {
+    public func skip(with error: Error) throws {
         guard timeAdjustmentSaveMode == .all,
               (timeOffset != nil || timezoneOverride != nil) else {
             return
         }
         
-        Task {
-            do {
-                let adjustedDate: Date? = {
-                    if let offset = self.timeOffset,
-                       let originalDate = try? self.imageIOReader.readDateFromPhoto(at: self.photoURL) {
-                        return originalDate.addingTimeInterval(offset)
-                    }
-                    return nil
-                }()
-                
-                let timezoneString = self.timezoneOverride.map { self.formatTimezoneOffset($0) }
-                
-                try await self.imageIOWriter.writeTimeAdjustments(
-                    timezoneOverride: timezoneString,
-                    adjustedDate: adjustedDate,
-                    toPhotoAt: self.photoURL,
-                    saveNewVersionAt: self.outputURL
-                )
-            } catch {
-                // Silently fail when unable to write time adjustments
+        let adjustedDate: Date? = {
+            if let offset = self.timeOffset,
+               let originalDate = try? self.imageIOReader.readDateFromPhoto(at: self.photoURL) {
+                return originalDate.addingTimeInterval(offset)
             }
-        }
+            return nil
+        }()
+        
+        let timezoneString = self.timezoneOverride?.formatAsTimezoneOffset()
+        
+        try self.imageIOWriter.write(
+            geotag: nil,
+            timezoneOverride: timezoneString,
+            adjustedDate: adjustedDate,
+            toPhotoAt: self.photoURL,
+            saveNewVersionAt: self.outputURL
+        )
     }
     
     public func apply(_ geotag: Geotag) async throws {
@@ -85,11 +80,11 @@ public struct ImageIOGeotaggingItem: GeotaggingItemProtocol {
                 return nil
             }()
             
-            let timezoneString = self.timezoneOverride.map { self.formatTimezoneOffset($0) }
+            let timezoneString = self.timezoneOverride?.formatAsTimezoneOffset()
             
-            try self.imageIOWriter.write(geotag, timezoneOverride: timezoneString, adjustedDate: adjustedDate, toPhotoAt: self.photoURL, saveNewVersionAt: self.outputURL)
+            try self.imageIOWriter.write(geotag: geotag, timezoneOverride: timezoneString, adjustedDate: adjustedDate, toPhotoAt: self.photoURL, saveNewVersionAt: self.outputURL)
         } else {
-            try self.imageIOWriter.write(geotag, toPhotoAt: self.photoURL, saveNewVersionAt: self.outputURL)
+            try self.imageIOWriter.write(geotag: geotag, timezoneOverride: nil, adjustedDate: nil, toPhotoAt: self.photoURL, saveNewVersionAt: self.outputURL)
         }
     }
     
@@ -103,17 +98,4 @@ public struct ImageIOGeotaggingItem: GeotaggingItemProtocol {
     private let timezoneOverride: Int? // Seconds from GMT
     private let timeAdjustmentSaveMode: TimeAdjustmentSaveMode
     
-    // MARK: - Private methods
-    
-    private func formatTimezoneOffset(_ seconds: Int) -> String {
-        if seconds == 0 {
-            return "Z"
-        }
-        
-        let hours = abs(seconds) / 3600
-        let minutes = (abs(seconds) % 3600) / 60
-        let sign = seconds >= 0 ? "+" : "-"
-        
-        return String(format: "%@%02d:%02d", sign, hours, minutes)
-    }
 }
