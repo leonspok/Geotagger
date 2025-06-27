@@ -30,10 +30,16 @@ public final class Geotagger {
         await withTaskGroup(of: Void.self) { group in
             for item in items {
                 group.addTask { [anchors = self.anchors] in
-                    do {
-                        let tag = try geotagFinder.findGeotag(for: item, using: anchors)
-                        try await item.apply(tag)
-                    } catch let error {
+                    let result = geotagFinder.findGeotagResult(for: item, using: anchors)
+                    
+                    switch result {
+                    case .success(let geotag):
+                        do {
+                            try await item.apply(geotag)
+                        } catch {
+                            // If apply fails, we silently continue to avoid blocking other items
+                        }
+                    case .failure(let error):
                         do {
                             try item.skip(with: error)
                         } catch {

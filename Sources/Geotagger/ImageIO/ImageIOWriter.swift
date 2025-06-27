@@ -74,7 +74,7 @@ public struct ImageIOWriter: ImageIOWriterProtocol {
 }
 
 // MARK: - Convenience Methods
-extension ImageIOWriter {
+extension ImageIOWriterProtocol {
     public func write(_ geotag: Geotag, toPhotoAt sourceURL: URL, saveNewVersionAt destinationURL: URL) throws {
         try write(geotag: geotag, timezoneOverride: nil, adjustedDate: nil, toPhotoAt: sourceURL, saveNewVersionAt: destinationURL)
     }

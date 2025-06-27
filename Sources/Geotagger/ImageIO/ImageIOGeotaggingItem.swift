@@ -49,20 +49,12 @@ public struct ImageIOGeotaggingItem: GeotaggingItemProtocol {
             return
         }
         
-        let adjustedDate: Date? = {
-            if let offset = self.timeOffset,
-               let originalDate = try? self.imageIOReader.readDateFromPhoto(at: self.photoURL) {
-                return originalDate.addingTimeInterval(offset)
-            }
-            return nil
-        }()
-        
         let timezoneString = self.timezoneOverride?.formatAsTimezoneOffset()
         
         try self.imageIOWriter.write(
             geotag: nil,
             timezoneOverride: timezoneString,
-            adjustedDate: adjustedDate,
+            adjustedDate: self.date,
             toPhotoAt: self.photoURL,
             saveNewVersionAt: self.outputURL
         )
@@ -72,17 +64,9 @@ public struct ImageIOGeotaggingItem: GeotaggingItemProtocol {
         let shouldWriteTimeAdjustments = timeAdjustmentSaveMode == .all || timeAdjustmentSaveMode == .tagged
         
         if shouldWriteTimeAdjustments {
-            let adjustedDate: Date? = {
-                if let offset = self.timeOffset,
-                   let originalDate = try? self.imageIOReader.readDateFromPhoto(at: self.photoURL) {
-                    return originalDate.addingTimeInterval(offset)
-                }
-                return nil
-            }()
-            
             let timezoneString = self.timezoneOverride?.formatAsTimezoneOffset()
             
-            try self.imageIOWriter.write(geotag: geotag, timezoneOverride: timezoneString, adjustedDate: adjustedDate, toPhotoAt: self.photoURL, saveNewVersionAt: self.outputURL)
+            try self.imageIOWriter.write(geotag: geotag, timezoneOverride: timezoneString, adjustedDate: self.date, toPhotoAt: self.photoURL, saveNewVersionAt: self.outputURL)
         } else {
             try self.imageIOWriter.write(geotag: geotag, timezoneOverride: nil, adjustedDate: nil, toPhotoAt: self.photoURL, saveNewVersionAt: self.outputURL)
         }
