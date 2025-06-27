@@ -32,14 +32,6 @@ struct LoggingGeotaggingItem: GeotaggingItemProtocol {
         return self.item.date
     }
     
-    var timeOffset: TimeInterval? {
-        return self.item.timeOffset
-    }
-    
-    var timezoneOverride: String? {
-        return self.item.timezoneOverride
-    }
-    
     func apply(_ geotag: Geotag) async throws {
         try await self.item.apply(geotag)
         self.logApplication()

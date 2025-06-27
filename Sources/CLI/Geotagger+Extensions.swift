@@ -57,7 +57,8 @@ extension Geotagger {
                    counter: GeotaggingCounter? = nil,
                    verbose: Bool = false,
                    photoTimeOffset: TimeInterval? = nil,
-                   timezoneOverride: String? = nil,
+                   timezoneOverride: Int? = nil,
+                   timeAdjustmentSaveMode: TimeAdjustmentSaveMode = .none,
                    saveTo: @escaping SaveToClosure = { $0 }) async throws {
         let imageReader = ImageIOReader()
         let imageWriter = ImageIOWriter()
@@ -75,7 +76,8 @@ extension Geotagger {
                 imageIOReader: imageReader,
                 imageIOWriter: imageWriter,
                 timeOffset: photoTimeOffset,
-                timezoneOverride: timezoneOverride
+                timezoneOverride: timezoneOverride,
+                timeAdjustmentSaveMode: timeAdjustmentSaveMode
             )
             return LoggingGeotaggingItem(imageItem, counter: counter, verbose: verbose)
         }
@@ -90,7 +92,8 @@ extension Geotagger {
                                 counter: GeotaggingCounter? = nil,
                                 verbose: Bool = false,
                                 photoTimeOffset: TimeInterval? = nil,
-                                timezoneOverride: String? = nil) async throws {
+                                timezoneOverride: Int? = nil,
+                                timeAdjustmentSaveMode: TimeAdjustmentSaveMode = .none) async throws {
         let directoryScanner = DirectoryScanner()
         let photoURLs = try directoryScanner.scanContents(of: directoryURL, recursive: scanSubdirectories, includingPropertiesForKeys: [.contentTypeKey], options: [.skipsHiddenFiles])
             .filter(\.isPhotoFileURL)
@@ -101,6 +104,7 @@ extension Geotagger {
             verbose: verbose,
             photoTimeOffset: photoTimeOffset,
             timezoneOverride: timezoneOverride,
+            timeAdjustmentSaveMode: timeAdjustmentSaveMode,
             saveTo: { photoURL in
                 guard let outputDirectoryURL = outputDirectoryURL else {
                     return photoURL

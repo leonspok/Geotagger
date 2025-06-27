@@ -22,14 +22,6 @@ public final class PHAssetGeotaggingItem: @unchecked Sendable, GeotaggingItemPro
         return self.asset.creationDate
     }
     
-    public var timeOffset: TimeInterval? {
-        return nil  // PHAsset doesn't support time offset
-    }
-    
-    public var timezoneOverride: String? {
-        return nil  // PHAsset doesn't support timezone override
-    }
-    
     public init(asset: PHAsset, batchProcessor: PHAssetGeotagBatchProcessor) {
         self.asset = asset
         self.batchProcessor = batchProcessor
