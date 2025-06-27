@@ -22,14 +22,6 @@ public final class PHAssetGeotaggingItem: @unchecked Sendable, GeotaggingItemPro
         return self.asset.creationDate
     }
     
-    public var timeOffset: TimeInterval? {
-        return nil  // PHAsset doesn't support time offset
-    }
-    
-    public var timezoneOverride: String? {
-        return nil  // PHAsset doesn't support timezone override
-    }
-    
     public init(asset: PHAsset, batchProcessor: PHAssetGeotagBatchProcessor) {
         self.asset = asset
         self.batchProcessor = batchProcessor
@@ -37,7 +29,7 @@ public final class PHAssetGeotaggingItem: @unchecked Sendable, GeotaggingItemPro
     
     // MARK: - GeotaggingItemProtocol
     
-    public func skip(with error: Error) {}
+    public func skip(with error: Error) throws {}
     
     public func apply(_ geotag: Geotag) async throws {
         guard self.asset.canPerform(.properties) else {

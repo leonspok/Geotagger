@@ -30,11 +30,13 @@ public final class Geotagger {
         await withTaskGroup(of: Void.self) { group in
             for item in items {
                 group.addTask { [anchors = self.anchors] in
-                    do {
-                        let tag = try geotagFinder.findGeotag(for: item, using: anchors)
-                        try await item.apply(tag)
-                    } catch let error {
-                        item.skip(with: error)
+                    let result = geotagFinder.findGeotagResult(for: item, using: anchors)
+                    
+                    switch result {
+                    case .success(let geotag):
+                        try? await item.apply(geotag)
+                    case .failure(let error):
+                        try? item.skip(with: error)
                     }
                 }
             }

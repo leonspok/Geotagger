@@ -96,3 +96,15 @@ public struct GeotagFinder: Sendable {
     }
 }
 
+// MARK: - Result-based API
+extension GeotagFinder {
+    public func findGeotagResult(for item: GeotaggingItemProtocol, using anchors: [GeoAnchor]) -> Result<Geotag, Error> {
+        do {
+            let geotag = try findGeotag(for: item, using: anchors)
+            return .success(geotag)
+        } catch {
+            return .failure(error)
+        }
+    }
+}
+

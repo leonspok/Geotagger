@@ -9,9 +9,7 @@ import Foundation
 import ImageIO
 
 public protocol ImageIOWriterProtocol: Sendable {
-    func write(_ geotag: Geotag, toPhotoAt sourceURL: URL, saveNewVersionAt destinationURL: URL) throws
-    func write(_ geotag: Geotag, timezoneOverride: String?, toPhotoAt sourceURL: URL, saveNewVersionAt destinationURL: URL) throws
-    func write(_ geotag: Geotag, timezoneOverride: String?, adjustedDate: Date?, toPhotoAt sourceURL: URL, saveNewVersionAt destinationURL: URL) throws
+    func write(geotag: Geotag?, timezoneOverride: String?, adjustedDate: Date?, toPhotoAt sourceURL: URL, saveNewVersionAt destinationURL: URL) throws
 }
 
 public struct ImageIOWriter: ImageIOWriterProtocol {
@@ -20,15 +18,7 @@ public struct ImageIOWriter: ImageIOWriterProtocol {
     
     // MARK: - ImageIOWriterProtocol
     
-    public func write(_ geotag: Geotag, toPhotoAt sourceURL: URL, saveNewVersionAt destinationURL: URL) throws {
-        try write(geotag, timezoneOverride: nil, toPhotoAt: sourceURL, saveNewVersionAt: destinationURL)
-    }
-    
-    public func write(_ geotag: Geotag, timezoneOverride: String?, toPhotoAt sourceURL: URL, saveNewVersionAt destinationURL: URL) throws {
-        try write(geotag, timezoneOverride: timezoneOverride, adjustedDate: nil, toPhotoAt: sourceURL, saveNewVersionAt: destinationURL)
-    }
-    
-    public func write(_ geotag: Geotag, timezoneOverride: String?, adjustedDate: Date?, toPhotoAt sourceURL: URL, saveNewVersionAt destinationURL: URL) throws {
+    public func write(geotag: Geotag?, timezoneOverride: String?, adjustedDate: Date?, toPhotoAt sourceURL: URL, saveNewVersionAt destinationURL: URL) throws {
         guard let imageSource = CGImageSourceCreateWithURL(sourceURL as CFURL, nil),
               let sourceUTType = CGImageSourceGetType(imageSource) else {
             throw ImageIOError.canNotCreateImageSource
@@ -43,8 +33,11 @@ public struct ImageIOWriter: ImageIOWriterProtocol {
             }
         }()
 
-        for (key, value) in geotag.asGPSDictionary {
-            CGImageMetadataSetValueMatchingImageProperty(mutableMetadata, kCGImagePropertyGPSDictionary, key, value as CFTypeRef)
+        // Write GPS data if geotag is provided
+        if let geotag = geotag {
+            for (key, value) in geotag.asGPSDictionary {
+                CGImageMetadataSetValueMatchingImageProperty(mutableMetadata, kCGImagePropertyGPSDictionary, key, value as CFTypeRef)
+            }
         }
         
         // Apply timezone override to EXIF metadata
@@ -77,8 +70,30 @@ public struct ImageIOWriter: ImageIOWriterProtocol {
         CGImageDestinationCopyImageSource(imageDestination, imageSource, options as CFDictionary, nil)
     }
     
-    // MARK: - Private methods
     
+}
+
+// MARK: - Convenience Methods
+extension ImageIOWriterProtocol {
+    public func write(_ geotag: Geotag, toPhotoAt sourceURL: URL, saveNewVersionAt destinationURL: URL) throws {
+        try write(geotag: geotag, timezoneOverride: nil, adjustedDate: nil, toPhotoAt: sourceURL, saveNewVersionAt: destinationURL)
+    }
+    
+    public func write(_ geotag: Geotag, timezoneOverride: String?, toPhotoAt sourceURL: URL, saveNewVersionAt destinationURL: URL) throws {
+        try write(geotag: geotag, timezoneOverride: timezoneOverride, adjustedDate: nil, toPhotoAt: sourceURL, saveNewVersionAt: destinationURL)
+    }
+    
+    public func write(_ geotag: Geotag, timezoneOverride: String?, adjustedDate: Date?, toPhotoAt sourceURL: URL, saveNewVersionAt destinationURL: URL) throws {
+        try write(geotag: geotag, timezoneOverride: timezoneOverride, adjustedDate: adjustedDate, toPhotoAt: sourceURL, saveNewVersionAt: destinationURL)
+    }
+    
+    public func writeTimeAdjustments(timezoneOverride: String?, adjustedDate: Date?, toPhotoAt sourceURL: URL, saveNewVersionAt destinationURL: URL) throws {
+        try write(geotag: nil, timezoneOverride: timezoneOverride, adjustedDate: adjustedDate, toPhotoAt: sourceURL, saveNewVersionAt: destinationURL)
+    }
+}
+
+// MARK: - Private Methods
+extension ImageIOWriter {
     private func isValidTimezoneOffset(_ timezone: String) -> Bool {
         // Valid formats: "+05:00", "-08:00", "Z"
         if timezone == "Z" {

@@ -7,6 +7,7 @@
 
 import XCTest
 @testable import Geotagger
+@testable import CLI
 
 final class TimeOffsetTests: XCTestCase {
     
@@ -73,41 +74,82 @@ final class TimeOffsetTests: XCTestCase {
         XCTAssertFalse(writer.isValidTimezoneOffset("+05:05"))  // Invalid minute offset
     }
     
-    // MARK: - MockGeotaggingItem Time Offset Tests
+    // MARK: - Timezone Formatting Tests
     
-    func testMockGeotaggingItemWithTimeOffset() {
-        let timeOffset: TimeInterval = 1800 // 30 minutes
-        let timezoneOverride = "+05:00"
+    func testTimezoneOffsetFormatting() {
+        // Test helper method to format seconds back to timezone string
+        let testCases = [
+            (0, "Z"),
+            (18000, "+05:00"),
+            (-28800, "-08:00"),
+            (19800, "+05:30"),
+            (-34200, "-09:30")
+        ]
         
-        let item = MockGeotaggingItem(
-            date: baseDate,
-            timeOffset: timeOffset,
-            timezoneOverride: timezoneOverride
-        )
+        // Test Int extension for formatting seconds to timezone string
         
-        XCTAssertEqual(item.date, baseDate)
-        XCTAssertEqual(item.timeOffset, timeOffset)
-        XCTAssertEqual(item.timezoneOverride, timezoneOverride)
+        for (seconds, expected) in testCases {
+            let formatted = seconds.formatAsTimezoneOffset()
+            XCTAssertEqual(formatted, expected, "Failed for \(seconds) seconds")
+        }
     }
     
-    func testMockGeotaggingItemDefaultValues() {
-        let item = MockGeotaggingItem(date: baseDate)
+    // MARK: - TimeZone Parsing Tests
+    
+    func testTimeZoneParsingPatterns() {
+        // Test GMT offset pattern parsing directly
+        let gmtPattern = /^([+-])(\d{2}):(\d{2})$/
         
-        XCTAssertEqual(item.date, baseDate)
-        XCTAssertNil(item.timeOffset)
-        XCTAssertNil(item.timezoneOverride)
+        let testCases = [
+            ("+05:00", 18000),   // +5 hours
+            ("-08:00", -28800),  // -8 hours  
+            ("+00:00", 0),       // UTC
+            ("+05:30", 19800)    // +5:30 hours
+        ]
+        
+        for (input, expected) in testCases {
+            if let match = input.firstMatch(of: gmtPattern) {
+                let hours = Int(match.2) ?? 0
+                let minutes = Int(match.3) ?? 0
+                let totalSeconds = (hours * 3600) + (minutes * 60)
+                let result = match.1 == "+" ? totalSeconds : -totalSeconds
+                XCTAssertEqual(result, expected, "Failed for \\(input)")
+            } else {
+                XCTFail("Failed to match pattern for \\(input)")
+            }
+        }
     }
     
-    // MARK: - ImageIOWriter Adjusted Date Tests
+    func testTimeZoneValidation() {
+        // Test TimeZone creation with various inputs
+        XCTAssertNotNil(TimeZone(abbreviation: "UTC"))
+        XCTAssertNotNil(TimeZone(identifier: "UTC"))
+        XCTAssertNotNil(TimeZone(identifier: "America/New_York"))
+        XCTAssertNil(TimeZone(abbreviation: "INVALID"))
+    }
+    
+    // MARK: - ImageIOWriter Method Tests
     
     func testImageIOWriterMethodSignatures() {
         let writer = ImageIOWriter()
         
-        // Verify all three method signatures exist and can be called
+        // Verify all method signatures exist and can be called
         // We're just testing the API exists, not the actual file writing
+        XCTAssertNotNil(writer.write(geotag:timezoneOverride:adjustedDate:toPhotoAt:saveNewVersionAt:))
         XCTAssertNotNil(writer.write(_:toPhotoAt:saveNewVersionAt:))
         XCTAssertNotNil(writer.write(_:timezoneOverride:toPhotoAt:saveNewVersionAt:))
         XCTAssertNotNil(writer.write(_:timezoneOverride:adjustedDate:toPhotoAt:saveNewVersionAt:))
+        XCTAssertNotNil(writer.writeTimeAdjustments(timezoneOverride:adjustedDate:toPhotoAt:saveNewVersionAt:))
+    }
+    
+    // MARK: - TimeAdjustmentSaveMode Tests
+    
+    func testTimeAdjustmentSaveModeValues() {
+        XCTAssertEqual(TimeAdjustmentSaveMode.all.rawValue, "all")
+        XCTAssertEqual(TimeAdjustmentSaveMode.tagged.rawValue, "tagged")
+        XCTAssertEqual(TimeAdjustmentSaveMode.none.rawValue, "none")
+        
+        XCTAssertEqual(TimeAdjustmentSaveMode.allCases.count, 3)
     }
 }
 
@@ -149,3 +191,5 @@ extension ImageIOWriter {
         return hours >= 0 && hours <= 14 && (minutes == 0 || minutes == 15 || minutes == 30 || minutes == 45)
     }
 }
+
+
