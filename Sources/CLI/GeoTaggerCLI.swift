@@ -69,7 +69,17 @@ struct GeoTaggerCLI: AsyncParsableCommand {
         let photosTimeOffsetSeconds = self.photosTimeOffset.map { TimeInterval($0 * 60) }
         
         // Parse timezone override
-        let photosTimezoneOffsetSeconds = self.photosTimezoneOverride?.parseAsTimezoneOffset()
+        let photosTimezoneOffsetSeconds: Int?
+        if let timezoneString = self.photosTimezoneOverride {
+            if let parsedOffset = timezoneString.parseAsTimezoneOffset() {
+                photosTimezoneOffsetSeconds = parsedOffset
+            } else {
+                print("Warning: Failed to parse timezone '\(timezoneString)'. Using original photo timezone.")
+                photosTimezoneOffsetSeconds = nil
+            }
+        } else {
+            photosTimezoneOffsetSeconds = nil
+        }
                 
         let anchorsURL = URL(fileURLWithPath: self.anchors)
         var isAnchorsURLDirectory: ObjCBool = false

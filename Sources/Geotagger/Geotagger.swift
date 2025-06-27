@@ -34,17 +34,9 @@ public final class Geotagger {
                     
                     switch result {
                     case .success(let geotag):
-                        do {
-                            try await item.apply(geotag)
-                        } catch {
-                            // If apply fails, we silently continue to avoid blocking other items
-                        }
+                        try? await item.apply(geotag)
                     case .failure(let error):
-                        do {
-                            try item.skip(with: error)
-                        } catch {
-                            // If skip also fails, we silently continue to avoid blocking other items
-                        }
+                        try? item.skip(with: error)
                     }
                 }
             }

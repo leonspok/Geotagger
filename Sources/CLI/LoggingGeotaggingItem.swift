@@ -33,13 +33,23 @@ struct LoggingGeotaggingItem: GeotaggingItemProtocol {
     }
     
     func apply(_ geotag: Geotag) async throws {
-        try await self.item.apply(geotag)
-        self.logApplication()
+        do {
+            try await self.item.apply(geotag)
+            self.logApplication()
+        } catch {
+            self.logError("Failed to apply geotag", error: error)
+            throw error
+        }
     }
     
     func skip(with error: Error) throws {
-        try self.item.skip(with: error)
-        self.logSkip(with: error)
+        do {
+            try self.item.skip(with: error)
+            self.logSkip(with: error)
+        } catch {
+            self.logError("Failed to skip item", error: error)
+            throw error
+        }
     }
 
     // MARK: - Private methods
@@ -59,6 +69,14 @@ struct LoggingGeotaggingItem: GeotaggingItemProtocol {
                 print("\(self.id): skipped with \(error)")
             }
             self.counter?.incrementSkipped()
+        }
+    }
+    
+    private func logError(_ message: String, error: Error) {
+        Task { @MainActor in
+            if self.verbose {
+                print("\(self.id): \(message): \(error)")
+            }
         }
     }
 }
