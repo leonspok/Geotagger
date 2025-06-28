@@ -83,7 +83,7 @@ public struct ImageIOReader: ImageIOReaderProtocol {
         
         // If timezone offset is available, recreate the date with proper timezone
         if let offsetString = timezoneOffset,
-           let timezone = parseTimezoneOffset(offsetString) {
+           let timezone = self.parseTimezoneOffset(offsetString) {
             // Extract components from the base date and apply the correct timezone
             var components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: baseDate)
             components.timeZone = timezone
