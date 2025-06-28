@@ -26,7 +26,7 @@ public struct GeotagFinder: Sendable {
     public let locationReferences: LocationReferences
 
     public func findGeotag(for item: GeotaggingItemProtocol, using anchors: [GeoAnchor]) throws -> Geotag {
-        guard let date = item.date else {
+        guard let date = try item.date else {
             throw GeotaggingError.canNotReadDateInformation
         }
         

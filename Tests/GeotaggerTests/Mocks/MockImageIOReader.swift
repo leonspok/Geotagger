@@ -13,6 +13,10 @@ final class MockImageIOReader: @unchecked Sendable, ImageIOReaderProtocol {
         return Date()
     }
     
+    func readDateAndTimezoneFromPhoto(at url: URL) throws -> (Date?, String?) {
+        return (Date(), nil)
+    }
+    
     func readGeotagFromPhoto(at url: URL) throws -> Geotag? {
         return nil
     }

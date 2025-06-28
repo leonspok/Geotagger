@@ -29,7 +29,9 @@ struct LoggingGeotaggingItem: WritableGeotaggingItemProtocol {
     }
     
     var date: Date? {
-        return self.item.date
+        get throws {
+            return try self.item.date
+        }
     }
     
     func apply(_ geotag: Geotag) async throws {

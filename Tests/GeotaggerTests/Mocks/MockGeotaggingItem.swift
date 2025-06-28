@@ -10,10 +10,14 @@ import Foundation
 
 final class MockGeotaggingItem: WritableGeotaggingItemProtocol, @unchecked Sendable {
     let id: String
-    let date: Date?
+    private let _date: Date?
     private let lock = NSLock()
     private var _appliedGeotag: Geotag?
     private var _skipError: Error?
+    
+    var date: Date? {
+        return _date
+    }
     
     var appliedGeotag: Geotag? {
         lock.withLock { _appliedGeotag }
@@ -26,7 +30,7 @@ final class MockGeotaggingItem: WritableGeotaggingItemProtocol, @unchecked Senda
     init(id: String = UUID().uuidString, 
          date: Date? = Date()) {
         self.id = id
-        self.date = date
+        self._date = date
     }
     
     func apply(_ geotag: Geotag) async throws {
