@@ -36,7 +36,7 @@ public final class Geotagger {
                     case .success(let geotag):
                         try? await item.apply(geotag)
                     case .failure(let error):
-                        try? item.skip(with: error)
+                        try? await item.skip(with: error)
                     }
                 }
             }
