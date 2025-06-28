@@ -8,7 +8,7 @@
 import Foundation
 @testable import Geotagger
 
-final class MockGeotaggingItem: GeotaggingItemProtocol, @unchecked Sendable {
+final class MockGeotaggingItem: WritableGeotaggingItemProtocol, @unchecked Sendable {
     let id: String
     let date: Date?
     private let lock = NSLock()

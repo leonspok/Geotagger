@@ -8,13 +8,13 @@
 import Foundation
 import Geotagger
 
-struct LoggingGeotaggingItem: GeotaggingItemProtocol {
+struct LoggingGeotaggingItem: WritableGeotaggingItemProtocol {
     
-    private let item: GeotaggingItemProtocol
+    private let item: WritableGeotaggingItemProtocol
     private let counter: GeotaggingCounter?
     private let verbose: Bool
 
-    init(_ item: GeotaggingItemProtocol,
+    init(_ item: WritableGeotaggingItemProtocol,
          counter: GeotaggingCounter? = nil,
          verbose: Bool = false) {
         self.item = item

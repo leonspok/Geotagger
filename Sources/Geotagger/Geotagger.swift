@@ -20,7 +20,7 @@ public final class Geotagger {
         self.anchors.removeAll()
     }
     
-    public func tag(_ items: [GeotaggingItemProtocol]) async throws {
+    public func tag(_ items: [WritableGeotaggingItemProtocol]) async throws {
         let geotagFinder = GeotagFinder(
             exactMatchTimeRange: self.exactMatchTimeRange,
             interpolationMatchTimeRange: self.interpolationMatchTimeRange,
