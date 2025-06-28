@@ -23,6 +23,9 @@ public struct ImageIOGeotaggingItem: WritableGeotaggingItemProtocol {
         self.timeOffset = timeOffset
         self.timezoneOverride = timezoneOverride
         self.timeAdjustmentSaveMode = timeAdjustmentSaveMode
+        
+        // Read original timezone from photo
+        self.originalTimezone = try? imageIOReader.readDateAndTimezoneFromPhoto(at: photoURL).1
     }
     
     // MARK: - GeotaggingItemProtocol
@@ -54,6 +57,7 @@ public struct ImageIOGeotaggingItem: WritableGeotaggingItemProtocol {
         try self.imageIOWriter.write(
             geotag: nil,
             timezoneOverride: timezoneString,
+            originalTimezone: self.originalTimezone,
             adjustedDate: self.date,
             toPhotoAt: self.photoURL,
             saveNewVersionAt: self.outputURL
@@ -66,9 +70,9 @@ public struct ImageIOGeotaggingItem: WritableGeotaggingItemProtocol {
         if shouldWriteTimeAdjustments {
             let timezoneString = self.timezoneOverride?.formatAsTimezoneOffset()
             
-            try self.imageIOWriter.write(geotag: geotag, timezoneOverride: timezoneString, adjustedDate: self.date, toPhotoAt: self.photoURL, saveNewVersionAt: self.outputURL)
+            try self.imageIOWriter.write(geotag: geotag, timezoneOverride: timezoneString, originalTimezone: self.originalTimezone, adjustedDate: self.date, toPhotoAt: self.photoURL, saveNewVersionAt: self.outputURL)
         } else {
-            try self.imageIOWriter.write(geotag: geotag, timezoneOverride: nil, adjustedDate: nil, toPhotoAt: self.photoURL, saveNewVersionAt: self.outputURL)
+            try self.imageIOWriter.write(geotag: geotag, timezoneOverride: nil, originalTimezone: nil, adjustedDate: nil, toPhotoAt: self.photoURL, saveNewVersionAt: self.outputURL)
         }
     }
     
@@ -81,5 +85,6 @@ public struct ImageIOGeotaggingItem: WritableGeotaggingItemProtocol {
     private let timeOffset: TimeInterval?
     private let timezoneOverride: Int? // Seconds from GMT
     private let timeAdjustmentSaveMode: TimeAdjustmentSaveMode
+    private let originalTimezone: String? // Original timezone from photo EXIF
     
 }

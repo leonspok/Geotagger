@@ -10,6 +10,7 @@ import ImageIO
 
 public protocol ImageIOReaderProtocol: Sendable {
     func readDateFromPhoto(at url: URL) throws -> Date?
+    func readDateAndTimezoneFromPhoto(at url: URL) throws -> (Date?, String?)
     func readGeotagFromPhoto(at url: URL) throws -> Geotag?
     func readGeoAnchorFromPhoto(at url: URL) throws -> GeoAnchor?
 }
@@ -28,6 +29,16 @@ public struct ImageIOReader: ImageIOReaderProtocol {
             return nil
         }
         return self.readDateFromMetadata(metadata)
+    }
+    
+    public func readDateAndTimezoneFromPhoto(at url: URL) throws -> (Date?, String?) {
+        guard let imageSource = CGImageSourceCreateWithURL(url as CFURL, nil) else {
+            throw ImageIOError.canNotCreateImageSource
+        }
+        guard let metadata = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [CFString: Any] else {
+            return (nil, nil)
+        }
+        return self.readDateAndTimezoneFromMetadata(metadata)
     }
     
     public func readGeotagFromPhoto(at url: URL) throws -> Geotag? {
@@ -55,6 +66,52 @@ public struct ImageIOReader: ImageIOReaderProtocol {
     }
 
     // MARK: - Private methods
+    
+    internal func readDateAndTimezoneFromMetadata(_ metadata: [CFString: Any]) -> (Date?, String?) {
+        guard let exifDictionary = metadata[kCGImagePropertyExifDictionary] as? [CFString: Any] else {
+            return (nil, nil)
+        }
+        
+        var dateString: String?
+        var timezoneOffset: String?
+        
+        if let originalDateString = exifDictionary[kCGImagePropertyExifDateTimeOriginal] as? String {
+            dateString = originalDateString
+            timezoneOffset = exifDictionary[kCGImagePropertyExifOffsetTimeOriginal] as? String
+        } else if let digitizedDateString = exifDictionary[kCGImagePropertyExifDateTimeDigitized] as? String {
+            dateString = digitizedDateString
+            timezoneOffset = exifDictionary[kCGImagePropertyExifOffsetTimeDigitized] as? String
+        }
+        
+        guard let dateStr = dateString else {
+            return (nil, nil)
+        }
+        
+        // Parse the date string using DateFormatter with UTC timezone
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US")
+        formatter.dateFormat = "yyyy:MM:dd HH:mm:ss"
+        formatter.timeZone = TimeZone(secondsFromGMT: 0) // Always parse as UTC
+        
+        guard let baseDate = formatter.date(from: dateStr) else {
+            return (nil, nil)
+        }
+        
+        // If timezone offset is available, recreate the date with proper timezone
+        if let offsetString = timezoneOffset,
+           let timezone = self.parseTimezoneOffset(offsetString) {
+            // Extract components from the UTC-parsed date using UTC calendar
+            var utcCalendar = Calendar.current
+            utcCalendar.timeZone = TimeZone(secondsFromGMT: 0)!
+            var components = utcCalendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: baseDate)
+            components.timeZone = timezone
+            let adjustedDate = Calendar.current.date(from: components)
+            return (adjustedDate, offsetString)
+        }
+        
+        // If no timezone info, return the UTC-parsed date (fallback behavior)
+        return (baseDate, nil)
+    }
     
     private func readDateFromMetadata(_ metadata: [CFString: Any]) -> Date? {
         guard let exifDictionary = metadata[kCGImagePropertyExifDictionary] as? [CFString: Any] else {
