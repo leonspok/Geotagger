@@ -45,7 +45,8 @@ public struct ImageIOGeotaggingItem: WritableGeotaggingItemProtocol {
     
     public func skip(with error: Error) async throws {
         guard timeAdjustmentSaveMode == .all,
-              (timeOffset != nil || timezoneOverride != nil) else {
+              (timeOffset != nil || timezoneOverride != nil),
+              let adjustedDate = try? self.date else {
             return
         }
         
@@ -56,7 +57,7 @@ public struct ImageIOGeotaggingItem: WritableGeotaggingItemProtocol {
             geotag: nil,
             timezoneOverride: timezoneString,
             originalTimezone: originalTimezone,
-            adjustedDate: try? self.date,
+            adjustedDate: adjustedDate,
             toPhotoAt: self.photoURL,
             saveNewVersionAt: self.outputURL
         )
@@ -65,11 +66,11 @@ public struct ImageIOGeotaggingItem: WritableGeotaggingItemProtocol {
     public func apply(_ geotag: Geotag) async throws {
         let shouldWriteTimeAdjustments = timeAdjustmentSaveMode == .all || timeAdjustmentSaveMode == .tagged
         
-        if shouldWriteTimeAdjustments {
+        if shouldWriteTimeAdjustments, let adjustedDate = try? self.date {
             let timezoneString = self.timezoneOverride?.formatAsTimezoneOffset()
             let originalTimezone = try? self.readDateAndTimezone().1
             
-            try self.imageIOWriter.write(geotag: geotag, timezoneOverride: timezoneString, originalTimezone: originalTimezone, adjustedDate: try? self.date, toPhotoAt: self.photoURL, saveNewVersionAt: self.outputURL)
+            try self.imageIOWriter.write(geotag: geotag, timezoneOverride: timezoneString, originalTimezone: originalTimezone, adjustedDate: adjustedDate, toPhotoAt: self.photoURL, saveNewVersionAt: self.outputURL)
         } else {
             try self.imageIOWriter.write(geotag: geotag, timezoneOverride: nil, originalTimezone: nil, adjustedDate: nil, toPhotoAt: self.photoURL, saveNewVersionAt: self.outputURL)
         }
