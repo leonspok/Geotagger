@@ -19,14 +19,16 @@ public final class PHAssetGeotaggingItem: @unchecked Sendable, WritableGeotaggin
     }
     
     public var date: Date? {
-        guard let originalDate = self.asset.creationDate else {
-            return nil
-        }
-        
-        if let offset = self.timeOffset {
-            return originalDate.addingTimeInterval(offset)
-        } else {
-            return originalDate
+        get throws {
+            guard let originalDate = self.asset.creationDate else {
+                return nil
+            }
+            
+            if let offset = self.timeOffset {
+                return originalDate.addingTimeInterval(offset)
+            } else {
+                return originalDate
+            }
         }
     }
     
@@ -45,7 +47,7 @@ public final class PHAssetGeotaggingItem: @unchecked Sendable, WritableGeotaggin
     public func skip(with error: Error) async throws {
         guard timeAdjustmentSaveMode == .all,
               self.timeOffset != nil,
-              let adjustedDate = self.date else {
+              let adjustedDate = try? self.date else {
             return
         }
         
@@ -66,7 +68,7 @@ public final class PHAssetGeotaggingItem: @unchecked Sendable, WritableGeotaggin
         }
         
         let shouldApplyTimeAdjustment = timeAdjustmentSaveMode == .all || timeAdjustmentSaveMode == .tagged
-        let adjustedDate = shouldApplyTimeAdjustment ? self.date : nil
+        let adjustedDate = shouldApplyTimeAdjustment ? try? self.date : nil
         
         try await batchProcessor.recordGeotag(asset: self.asset, geotag: geotag, adjustedDate: adjustedDate)
     }

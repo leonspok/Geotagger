@@ -9,7 +9,7 @@ import Foundation
 
 public protocol GeotaggingItemProtocol: Sendable {
     var id: String { get }
-    var date: Date? { get }
+    var date: Date? { get throws }
 }
 
 public protocol WritableGeotaggingItemProtocol: GeotaggingItemProtocol {    
