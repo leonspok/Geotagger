@@ -43,7 +43,7 @@ public struct ImageIOGeotaggingItem: GeotaggingItemProtocol {
         }
     }
     
-    public func skip(with error: Error) throws {
+    public func skip(with error: Error) async throws {
         guard timeAdjustmentSaveMode == .all,
               (timeOffset != nil || timezoneOverride != nil) else {
             return

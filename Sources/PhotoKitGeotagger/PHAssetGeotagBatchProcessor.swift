@@ -20,12 +20,21 @@ public struct PHAssetGeotagResult {
 }
 
 public actor PHAssetGeotagBatchProcessor {
+    // MARK: - Private types
+    
+    private struct PendingRequest {
+        let asset: PHAsset
+        let geotag: Geotag?
+        let adjustedDate: Date?
+        let continuation: CheckedContinuation<Void, Error>
+    }
+    
     // MARK: - Private properties
     
     private let photoLibrary: PHPhotoLibrary
     private let batchDelay: TimeInterval
     
-    private var pendingRequests: [(asset: PHAsset, geotag: Geotag?, adjustedDate: Date?, continuation: CheckedContinuation<Void, Error>)] = []
+    private var pendingRequests: [PendingRequest] = []
     private var processingTask: Task<Void, Never>?
     
     // MARK: - Public API
@@ -37,14 +46,26 @@ public actor PHAssetGeotagBatchProcessor {
     
     public func recordGeotag(asset: PHAsset, geotag: Geotag, adjustedDate: Date? = nil) async throws {
         try await withCheckedThrowingContinuation { continuation in
-            self.pendingRequests.append((asset: asset, geotag: geotag, adjustedDate: adjustedDate, continuation: continuation))
+            let request = PendingRequest(
+                asset: asset,
+                geotag: geotag,
+                adjustedDate: adjustedDate,
+                continuation: continuation
+            )
+            self.pendingRequests.append(request)
             self.scheduleProcessing()
         }
     }
     
     public func recordTimeAdjustment(asset: PHAsset, adjustedDate: Date) async throws {
         try await withCheckedThrowingContinuation { continuation in
-            self.pendingRequests.append((asset: asset, geotag: nil, adjustedDate: adjustedDate, continuation: continuation))
+            let request = PendingRequest(
+                asset: asset,
+                geotag: nil,
+                adjustedDate: adjustedDate,
+                continuation: continuation
+            )
+            self.pendingRequests.append(request)
             self.scheduleProcessing()
         }
     }
@@ -86,12 +107,12 @@ public actor PHAssetGeotagBatchProcessor {
         
         do {
             try await self.photoLibrary.performChanges { [requestsToProcess] in
-                for (asset, geotag, adjustedDate, _) in requestsToProcess {
-                    let request = PHAssetChangeRequest(for: asset)
+                for request in requestsToProcess {
+                    let changeRequest = PHAssetChangeRequest(for: request.asset)
                     
                     // Apply geotag if provided
-                    if let geotag = geotag {
-                        request.location = CLLocation(
+                    if let geotag = request.geotag {
+                        changeRequest.location = CLLocation(
                             coordinate: CLLocationCoordinate2D(
                                 latitude: geotag.location.latitude.degrees,
                                 longitude: geotag.location.longitude.degrees
@@ -99,25 +120,25 @@ public actor PHAssetGeotagBatchProcessor {
                             altitude: geotag.location.altitude?.value ?? 0,
                             horizontalAccuracy: kCLLocationAccuracyBest,
                             verticalAccuracy: kCLLocationAccuracyBest,
-                            timestamp: adjustedDate ?? asset.creationDate ?? Date()
+                            timestamp: request.adjustedDate ?? request.asset.creationDate ?? Date()
                         )
                     }
                     
                     // Apply adjusted date if provided
-                    if let adjustedDate = adjustedDate {
-                        request.creationDate = adjustedDate
+                    if let adjustedDate = request.adjustedDate {
+                        changeRequest.creationDate = adjustedDate
                     }
                 }
             }
             
             // If batch succeeds, resume all continuations
-            for (_, _, _, continuation) in requestsToProcess {
-                continuation.resume()
+            for request in requestsToProcess {
+                request.continuation.resume()
             }
         } catch let error {
             // If batch fails, resume all continuations by throwing errors
-            for (_, _, _, continuation) in requestsToProcess {
-                continuation.resume(throwing: error)
+            for request in requestsToProcess {
+                request.continuation.resume(throwing: error)
             }
         }
     }

@@ -42,9 +42,9 @@ struct LoggingGeotaggingItem: GeotaggingItemProtocol {
         }
     }
     
-    func skip(with error: Error) throws {
+    func skip(with error: Error) async throws {
         do {
-            try self.item.skip(with: error)
+            try await self.item.skip(with: error)
             self.logSkip(with: error)
         } catch {
             self.logError("Failed to skip item", error: error)

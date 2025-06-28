@@ -42,7 +42,7 @@ public final class PHAssetGeotaggingItem: @unchecked Sendable, GeotaggingItemPro
     
     // MARK: - GeotaggingItemProtocol
     
-    public func skip(with error: Error) throws {
+    public func skip(with error: Error) async throws {
         guard timeAdjustmentSaveMode == .all,
               self.timeOffset != nil,
               let adjustedDate = self.date else {
@@ -53,9 +53,7 @@ public final class PHAssetGeotaggingItem: @unchecked Sendable, GeotaggingItemPro
             throw PHAssetGeotaggingError.batchProcessorNotAvailable
         }
         
-        Task {
-            try await batchProcessor.recordTimeAdjustment(asset: self.asset, adjustedDate: adjustedDate)
-        }
+        try await batchProcessor.recordTimeAdjustment(asset: self.asset, adjustedDate: adjustedDate)
     }
     
     public func apply(_ geotag: Geotag) async throws {
