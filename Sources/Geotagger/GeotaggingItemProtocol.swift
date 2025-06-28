@@ -12,7 +12,7 @@ public protocol GeotaggingItemProtocol: Sendable {
     var date: Date? { get }
 }
 
-public protocol WritableGeotaggingItemProtocol: GeotaggingItemProtocol {
+public protocol WritableGeotaggingItemProtocol: GeotaggingItemProtocol {    
     func skip(with error: Error) async throws
     func apply(_ geotag: Geotag) async throws
 }
