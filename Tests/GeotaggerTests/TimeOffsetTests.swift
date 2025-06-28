@@ -48,36 +48,10 @@ final class TimeOffsetTests: XCTestCase {
         XCTAssertEqual(offsetAnchors[0].date, baseDate.addingTimeInterval(-600))
     }
     
-    // MARK: - ImageIOWriter Timezone Validation Tests
-    
-    func testImageIOWriterTimezoneValidation() {
-        let writer = ImageIOWriter()
-        
-        // Test valid timezone formats
-        XCTAssertTrue(writer.isValidTimezoneOffset("Z"))
-        XCTAssertTrue(writer.isValidTimezoneOffset("+05:00"))
-        XCTAssertTrue(writer.isValidTimezoneOffset("-08:00"))
-        XCTAssertTrue(writer.isValidTimezoneOffset("+00:00"))
-        XCTAssertTrue(writer.isValidTimezoneOffset("-12:00"))
-        XCTAssertTrue(writer.isValidTimezoneOffset("+14:00"))
-        XCTAssertTrue(writer.isValidTimezoneOffset("+05:30"))  // India
-        XCTAssertTrue(writer.isValidTimezoneOffset("+09:45"))  // Nepal
-        
-        // Test invalid formats
-        XCTAssertFalse(writer.isValidTimezoneOffset("5:00"))
-        XCTAssertFalse(writer.isValidTimezoneOffset("+5:00"))
-        XCTAssertFalse(writer.isValidTimezoneOffset("+05:0"))
-        XCTAssertFalse(writer.isValidTimezoneOffset("UTC"))
-        XCTAssertFalse(writer.isValidTimezoneOffset(""))
-        XCTAssertFalse(writer.isValidTimezoneOffset("+25:00"))  // Invalid hour
-        XCTAssertFalse(writer.isValidTimezoneOffset("+05:60"))  // Invalid minute
-        XCTAssertFalse(writer.isValidTimezoneOffset("+05:05"))  // Invalid minute offset
-    }
-    
     // MARK: - Timezone Formatting Tests
     
     func testTimezoneOffsetFormatting() {
-        // Test helper method to format seconds back to timezone string
+        // Test Int extension for formatting seconds to timezone string
         let testCases = [
             (0, "Z"),
             (18000, "+05:00"),
@@ -86,16 +60,68 @@ final class TimeOffsetTests: XCTestCase {
             (-34200, "-09:30")
         ]
         
-        // Test Int extension for formatting seconds to timezone string
-        
         for (seconds, expected) in testCases {
             let formatted = seconds.formatAsTimezoneOffset()
             XCTAssertEqual(formatted, expected, "Failed for \(seconds) seconds")
         }
     }
     
+    // MARK: - Timezone Parsing Tests
     
-    
+    func testTimezoneOffsetParsing() {
+        // Test GMT offset format parsing
+        XCTAssertEqual("+05:00".parseAsTimezoneOffset(), 18000)  // +5 hours
+        XCTAssertEqual("-08:00".parseAsTimezoneOffset(), -28800) // -8 hours
+        XCTAssertEqual("+00:00".parseAsTimezoneOffset(), 0)      // UTC
+        XCTAssertEqual("+05:30".parseAsTimezoneOffset(), 19800)  // +5:30 hours (India)
+        XCTAssertEqual("-09:30".parseAsTimezoneOffset(), -34200) // -9:30 hours
+        XCTAssertEqual("Z".parseAsTimezoneOffset(), 0)           // UTC
+        
+        // Test invalid GMT offset formats
+        XCTAssertNil("5:00".parseAsTimezoneOffset())    // Missing sign
+        XCTAssertNil("+5:00".parseAsTimezoneOffset())   // Wrong hour format
+        XCTAssertNil("+05:0".parseAsTimezoneOffset())   // Wrong minute format
+        XCTAssertNil("+25:00".parseAsTimezoneOffset())  // Invalid hour
+        XCTAssertNil("+05:60".parseAsTimezoneOffset())  // Invalid minute
+        XCTAssertNil("".parseAsTimezoneOffset())        // Empty string
+        
+        // Test common timezone abbreviations
+        XCTAssertNotNil("UTC".parseAsTimezoneOffset())
+        XCTAssertNotNil("GMT".parseAsTimezoneOffset())
+        
+        // US timezone abbreviations
+        XCTAssertNotNil("EST".parseAsTimezoneOffset())  // Eastern Standard Time
+        XCTAssertNotNil("EDT".parseAsTimezoneOffset())  // Eastern Daylight Time
+        XCTAssertNotNil("PST".parseAsTimezoneOffset())  // Pacific Standard Time
+        XCTAssertNotNil("PDT".parseAsTimezoneOffset())  // Pacific Daylight Time
+        XCTAssertNotNil("CST".parseAsTimezoneOffset())  // Central Standard Time
+        XCTAssertNotNil("CDT".parseAsTimezoneOffset())  // Central Daylight Time
+        XCTAssertNotNil("MST".parseAsTimezoneOffset())  // Mountain Standard Time
+        XCTAssertNotNil("MDT".parseAsTimezoneOffset())  // Mountain Daylight Time
+        
+        // European timezone abbreviations
+        XCTAssertNotNil("CET".parseAsTimezoneOffset())  // Central European Time
+        XCTAssertNotNil("CEST".parseAsTimezoneOffset()) // Central European Summer Time
+        XCTAssertNotNil("WET".parseAsTimezoneOffset())  // Western European Time
+        XCTAssertNotNil("WEST".parseAsTimezoneOffset()) // Western European Summer Time
+        
+        // Other common abbreviations
+        XCTAssertNotNil("JST".parseAsTimezoneOffset())  // Japan Standard Time
+        
+        // Test timezone identifiers
+        XCTAssertNotNil("America/New_York".parseAsTimezoneOffset())
+        XCTAssertNotNil("America/Los_Angeles".parseAsTimezoneOffset())
+        XCTAssertNotNil("America/Chicago".parseAsTimezoneOffset())
+        XCTAssertNotNil("America/Denver".parseAsTimezoneOffset())
+        XCTAssertNotNil("Europe/London".parseAsTimezoneOffset())
+        XCTAssertNotNil("Europe/Paris".parseAsTimezoneOffset())
+        XCTAssertNotNil("Europe/Berlin".parseAsTimezoneOffset())
+        XCTAssertNotNil("Asia/Tokyo".parseAsTimezoneOffset())
+        XCTAssertNotNil("Australia/Sydney".parseAsTimezoneOffset())
+        
+        // Test invalid timezone
+        XCTAssertNil("INVALID_TIMEZONE".parseAsTimezoneOffset())
+    }
 }
 
 // MARK: - Helper Classes
@@ -112,29 +138,5 @@ private class MockGeoAnchorsLoader: GeoAnchorsLoaderProtocol {
     }
 }
 
-// Extension to access private method for testing
-extension ImageIOWriter {
-    func isValidTimezoneOffset(_ timezone: String) -> Bool {
-        // Valid formats: "+05:00", "-08:00", "Z"
-        if timezone == "Z" {
-            return true
-        }
-        
-        let pattern = /^([+-])(\d{2}):(\d{2})$/
-        guard let match = timezone.firstMatch(of: pattern) else {
-            return false
-        }
-        
-        // Extract hours and minutes
-        guard let hours = Int(match.2),
-              let minutes = Int(match.3) else {
-            return false
-        }
-        
-        // Valid timezone offsets are -12:00 to +14:00
-        // Minutes should be 00, 15, 30, or 45 (common timezone minute offsets)
-        return hours >= 0 && hours <= 14 && (minutes == 0 || minutes == 15 || minutes == 30 || minutes == 45)
-    }
-}
 
 

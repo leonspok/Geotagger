@@ -51,7 +51,8 @@ let package = Package(
         .testTarget(
             name: "GeotaggerTests",
             dependencies: [
-                "Geotagger"
+                "Geotagger",
+                "CLI"
             ]
         ),
     ]
