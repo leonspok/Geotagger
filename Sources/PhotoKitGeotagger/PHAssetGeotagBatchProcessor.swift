@@ -25,7 +25,7 @@ public actor PHAssetGeotagBatchProcessor {
     private let photoLibrary: PHPhotoLibrary
     private let batchDelay: TimeInterval
     
-    private var pendingRequests: [(asset: PHAsset, geotag: Geotag, continuation: CheckedContinuation<Void, Error>)] = []
+    private var pendingRequests: [(asset: PHAsset, geotag: Geotag?, adjustedDate: Date?, continuation: CheckedContinuation<Void, Error>)] = []
     private var processingTask: Task<Void, Never>?
     
     // MARK: - Public API
@@ -35,9 +35,16 @@ public actor PHAssetGeotagBatchProcessor {
         self.batchDelay = batchDelay
     }
     
-    public func recordGeotag(asset: PHAsset, geotag: Geotag) async throws {
+    public func recordGeotag(asset: PHAsset, geotag: Geotag, adjustedDate: Date? = nil) async throws {
         try await withCheckedThrowingContinuation { continuation in
-            self.pendingRequests.append((asset: asset, geotag: geotag, continuation: continuation))
+            self.pendingRequests.append((asset: asset, geotag: geotag, adjustedDate: adjustedDate, continuation: continuation))
+            self.scheduleProcessing()
+        }
+    }
+    
+    public func recordTimeAdjustment(asset: PHAsset, adjustedDate: Date) async throws {
+        try await withCheckedThrowingContinuation { continuation in
+            self.pendingRequests.append((asset: asset, geotag: nil, adjustedDate: adjustedDate, continuation: continuation))
             self.scheduleProcessing()
         }
     }
@@ -79,28 +86,37 @@ public actor PHAssetGeotagBatchProcessor {
         
         do {
             try await self.photoLibrary.performChanges { [requestsToProcess] in
-                for (asset, geotag, _) in requestsToProcess {
+                for (asset, geotag, adjustedDate, _) in requestsToProcess {
                     let request = PHAssetChangeRequest(for: asset)
-                    request.location = CLLocation(
-                        coordinate: CLLocationCoordinate2D(
-                            latitude: geotag.location.latitude.degrees,
-                            longitude: geotag.location.longitude.degrees
-                        ),
-                        altitude: geotag.location.altitude?.value ?? 0,
-                        horizontalAccuracy: kCLLocationAccuracyBest,
-                        verticalAccuracy: kCLLocationAccuracyBest,
-                        timestamp: asset.creationDate ?? Date()
-                    )
+                    
+                    // Apply geotag if provided
+                    if let geotag = geotag {
+                        request.location = CLLocation(
+                            coordinate: CLLocationCoordinate2D(
+                                latitude: geotag.location.latitude.degrees,
+                                longitude: geotag.location.longitude.degrees
+                            ),
+                            altitude: geotag.location.altitude?.value ?? 0,
+                            horizontalAccuracy: kCLLocationAccuracyBest,
+                            verticalAccuracy: kCLLocationAccuracyBest,
+                            timestamp: adjustedDate ?? asset.creationDate ?? Date()
+                        )
+                    }
+                    
+                    // Apply adjusted date if provided
+                    if let adjustedDate = adjustedDate {
+                        request.creationDate = adjustedDate
+                    }
                 }
             }
             
             // If batch succeeds, resume all continuations
-            for (_, _, continuation) in requestsToProcess {
+            for (_, _, _, continuation) in requestsToProcess {
                 continuation.resume()
             }
         } catch let error {
             // If batch fails, resume all continuations by throwing errors
-            for (_, _, continuation) in requestsToProcess {
+            for (_, _, _, continuation) in requestsToProcess {
                 continuation.resume(throwing: error)
             }
         }

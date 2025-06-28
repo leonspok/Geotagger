@@ -19,17 +19,44 @@ public final class PHAssetGeotaggingItem: @unchecked Sendable, GeotaggingItemPro
     }
     
     public var date: Date? {
-        return self.asset.creationDate
+        guard let originalDate = self.asset.creationDate else {
+            return nil
+        }
+        
+        if let offset = self.timeOffset {
+            return originalDate.addingTimeInterval(offset)
+        } else {
+            return originalDate
+        }
     }
     
-    public init(asset: PHAsset, batchProcessor: PHAssetGeotagBatchProcessor) {
+    public init(asset: PHAsset,
+                batchProcessor: PHAssetGeotagBatchProcessor,
+                timeOffset: TimeInterval? = nil,
+                timeAdjustmentSaveMode: TimeAdjustmentSaveMode = .none) {
         self.asset = asset
         self.batchProcessor = batchProcessor
+        self.timeOffset = timeOffset
+        self.timeAdjustmentSaveMode = timeAdjustmentSaveMode
     }
     
     // MARK: - GeotaggingItemProtocol
     
-    public func skip(with error: Error) throws {}
+    public func skip(with error: Error) throws {
+        guard timeAdjustmentSaveMode == .all,
+              self.timeOffset != nil,
+              let adjustedDate = self.date else {
+            return
+        }
+        
+        guard let batchProcessor = self.batchProcessor else {
+            throw PHAssetGeotaggingError.batchProcessorNotAvailable
+        }
+        
+        Task {
+            try await batchProcessor.recordTimeAdjustment(asset: self.asset, adjustedDate: adjustedDate)
+        }
+    }
     
     public func apply(_ geotag: Geotag) async throws {
         guard self.asset.canPerform(.properties) else {
@@ -40,12 +67,17 @@ public final class PHAssetGeotaggingItem: @unchecked Sendable, GeotaggingItemPro
             throw PHAssetGeotaggingError.batchProcessorNotAvailable
         }
         
-        try await batchProcessor.recordGeotag(asset: self.asset, geotag: geotag)
+        let shouldApplyTimeAdjustment = timeAdjustmentSaveMode == .all || timeAdjustmentSaveMode == .tagged
+        let adjustedDate = shouldApplyTimeAdjustment ? self.date : nil
+        
+        try await batchProcessor.recordGeotag(asset: self.asset, geotag: geotag, adjustedDate: adjustedDate)
     }
     
     // MARK: - Private properties
     
     private weak var batchProcessor: PHAssetGeotagBatchProcessor?
+    private let timeOffset: TimeInterval?
+    private let timeAdjustmentSaveMode: TimeAdjustmentSaveMode
 }
 
 public enum PHAssetGeotaggingError: LocalizedError {
