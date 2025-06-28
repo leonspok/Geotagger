@@ -16,9 +16,7 @@ final class MockGeotaggingItem: WritableGeotaggingItemProtocol, @unchecked Senda
     private var _skipError: Error?
     
     var date: Date? {
-        get throws {
-            return _date
-        }
+        return _date
     }
     
     var appliedGeotag: Geotag? {
