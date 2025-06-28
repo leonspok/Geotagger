@@ -84,11 +84,9 @@ public struct ImageIOReader: ImageIOReaderProtocol {
         // If timezone offset is available, recreate the date with proper timezone
         if let offsetString = timezoneOffset,
            let timezone = parseTimezoneOffset(offsetString) {
-            
             // Extract components from the base date and apply the correct timezone
             var components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: baseDate)
             components.timeZone = timezone
-            
             return Calendar.current.date(from: components)
         }
         
@@ -103,7 +101,7 @@ public struct ImageIOReader: ImageIOReaderProtocol {
             return TimeZone(secondsFromGMT: 0)
         }
         
-        // Handle format like "+05:00" or "-08:00" using modern Regex
+        // Handle format like "+05:00" or "-08:00"
         let regex = /^([+-])(\d{2}):(\d{2})$/
         guard let match = trimmed.firstMatch(of: regex) else {
             return nil
