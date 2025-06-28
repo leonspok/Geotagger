@@ -62,7 +62,7 @@ extension Geotagger {
                    saveTo: @escaping SaveToClosure = { $0 }) async throws {
         let imageReader = ImageIOReader()
         let imageWriter = ImageIOWriter()
-        let geotaggingItems = try urls.compactMap { url -> GeotaggingItemProtocol? in
+        let geotaggingItems = try urls.compactMap { url -> WritableGeotaggingItemProtocol? in
             if verbose {
                 print("Loading \(url.lastPathComponent)...")
             }

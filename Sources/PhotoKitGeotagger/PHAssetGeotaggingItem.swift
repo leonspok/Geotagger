@@ -9,7 +9,7 @@ import Foundation
 import Photos
 import Geotagger
 
-public final class PHAssetGeotaggingItem: @unchecked Sendable, GeotaggingItemProtocol {
+public final class PHAssetGeotaggingItem: @unchecked Sendable, WritableGeotaggingItemProtocol {
     // MARK: - Public API
     
     public let asset: PHAsset

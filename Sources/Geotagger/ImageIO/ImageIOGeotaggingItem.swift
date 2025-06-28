@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ImageIOGeotaggingItem: GeotaggingItemProtocol {
+public struct ImageIOGeotaggingItem: WritableGeotaggingItemProtocol {
     
     public init(photoURL: URL,
                 outputURL: URL,
