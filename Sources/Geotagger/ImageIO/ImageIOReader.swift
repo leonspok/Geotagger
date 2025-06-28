@@ -76,20 +76,28 @@ public struct ImageIOReader: ImageIOReaderProtocol {
             return nil
         }
         
-        // Parse the date string using DateFormatter to get a base Date
-        guard let baseDate = DateFormatter.exif.date(from: dateStr) else {
+        // Parse the date string using DateFormatter with UTC timezone
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US")
+        formatter.dateFormat = "yyyy:MM:dd HH:mm:ss"
+        formatter.timeZone = TimeZone(secondsFromGMT: 0) // Always parse as UTC
+        
+        guard let baseDate = formatter.date(from: dateStr) else {
             return nil
         }
         
         // If timezone offset is available, recreate the date with proper timezone
         if let offsetString = timezoneOffset,
            let timezone = self.parseTimezoneOffset(offsetString) {
-            // Extract components from the base date and apply the correct timezone
-            var components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: baseDate)
+            // Extract components from the UTC-parsed date using UTC calendar
+            var utcCalendar = Calendar.current
+            utcCalendar.timeZone = TimeZone(secondsFromGMT: 0)!
+            var components = utcCalendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: baseDate)
             components.timeZone = timezone
             return Calendar.current.date(from: components)
         }
         
+        // If no timezone info, return the UTC-parsed date (fallback behavior)
         return baseDate
     }
     

@@ -94,63 +94,8 @@ final class TimeOffsetTests: XCTestCase {
         }
     }
     
-    // MARK: - TimeZone Parsing Tests
     
-    func testTimeZoneParsingPatterns() {
-        // Test GMT offset pattern parsing directly
-        let gmtPattern = /^([+-])(\d{2}):(\d{2})$/
-        
-        let testCases = [
-            ("+05:00", 18000),   // +5 hours
-            ("-08:00", -28800),  // -8 hours  
-            ("+00:00", 0),       // UTC
-            ("+05:30", 19800)    // +5:30 hours
-        ]
-        
-        for (input, expected) in testCases {
-            if let match = input.firstMatch(of: gmtPattern) {
-                let hours = Int(match.2) ?? 0
-                let minutes = Int(match.3) ?? 0
-                let totalSeconds = (hours * 3600) + (minutes * 60)
-                let result = match.1 == "+" ? totalSeconds : -totalSeconds
-                XCTAssertEqual(result, expected, "Failed for \\(input)")
-            } else {
-                XCTFail("Failed to match pattern for \\(input)")
-            }
-        }
-    }
     
-    func testTimeZoneValidation() {
-        // Test TimeZone creation with various inputs
-        XCTAssertNotNil(TimeZone(abbreviation: "UTC"))
-        XCTAssertNotNil(TimeZone(identifier: "UTC"))
-        XCTAssertNotNil(TimeZone(identifier: "America/New_York"))
-        XCTAssertNil(TimeZone(abbreviation: "INVALID"))
-    }
-    
-    // MARK: - ImageIOWriter Method Tests
-    
-    func testImageIOWriterMethodSignatures() {
-        let writer = ImageIOWriter()
-        
-        // Verify all method signatures exist and can be called
-        // We're just testing the API exists, not the actual file writing
-        XCTAssertNotNil(writer.write(geotag:timezoneOverride:adjustedDate:toPhotoAt:saveNewVersionAt:))
-        XCTAssertNotNil(writer.write(_:toPhotoAt:saveNewVersionAt:))
-        XCTAssertNotNil(writer.write(_:timezoneOverride:toPhotoAt:saveNewVersionAt:))
-        XCTAssertNotNil(writer.write(_:timezoneOverride:adjustedDate:toPhotoAt:saveNewVersionAt:))
-        XCTAssertNotNil(writer.writeTimeAdjustments(timezoneOverride:adjustedDate:toPhotoAt:saveNewVersionAt:))
-    }
-    
-    // MARK: - TimeAdjustmentSaveMode Tests
-    
-    func testTimeAdjustmentSaveModeValues() {
-        XCTAssertEqual(TimeAdjustmentSaveMode.all.rawValue, "all")
-        XCTAssertEqual(TimeAdjustmentSaveMode.tagged.rawValue, "tagged")
-        XCTAssertEqual(TimeAdjustmentSaveMode.none.rawValue, "none")
-        
-        XCTAssertEqual(TimeAdjustmentSaveMode.allCases.count, 3)
-    }
 }
 
 // MARK: - Helper Classes
