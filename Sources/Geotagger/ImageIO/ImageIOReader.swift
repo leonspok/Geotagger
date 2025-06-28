@@ -60,13 +60,63 @@ public struct ImageIOReader: ImageIOReaderProtocol {
         guard let exifDictionary = metadata[kCGImagePropertyExifDictionary] as? [CFString: Any] else {
             return nil
         }
-        if let dateString = exifDictionary[kCGImagePropertyExifDateTimeOriginal] as? String {
-            return DateFormatter.exif.date(from: dateString)
-        } else if let dateString = exifDictionary[kCGImagePropertyExifDateTimeDigitized] as? String {
-            return DateFormatter.exif.date(from: dateString)
-        } else {
+        
+        var dateString: String?
+        var timezoneOffset: String?
+        
+        if let originalDateString = exifDictionary[kCGImagePropertyExifDateTimeOriginal] as? String {
+            dateString = originalDateString
+            timezoneOffset = exifDictionary[kCGImagePropertyExifOffsetTimeOriginal] as? String
+        } else if let digitizedDateString = exifDictionary[kCGImagePropertyExifDateTimeDigitized] as? String {
+            dateString = digitizedDateString
+            timezoneOffset = exifDictionary[kCGImagePropertyExifOffsetTimeDigitized] as? String
+        }
+        
+        guard let dateStr = dateString else {
             return nil
         }
+        
+        // Parse the date string using DateFormatter to get a base Date
+        guard let baseDate = DateFormatter.exif.date(from: dateStr) else {
+            return nil
+        }
+        
+        // If timezone offset is available, recreate the date with proper timezone
+        if let offsetString = timezoneOffset,
+           let timezone = parseTimezoneOffset(offsetString) {
+            
+            // Extract components from the base date and apply the correct timezone
+            var components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: baseDate)
+            components.timeZone = timezone
+            
+            return Calendar.current.date(from: components)
+        }
+        
+        return baseDate
+    }
+    
+    private func parseTimezoneOffset(_ offsetString: String) -> TimeZone? {
+        let trimmed = offsetString.trimmingCharacters(in: .whitespaces)
+        
+        // Handle "Z" for UTC
+        if trimmed == "Z" {
+            return TimeZone(secondsFromGMT: 0)
+        }
+        
+        // Handle format like "+05:00" or "-08:00" using modern Regex
+        let regex = /^([+-])(\d{2}):(\d{2})$/
+        guard let match = trimmed.firstMatch(of: regex) else {
+            return nil
+        }
+        
+        let sign = String(match.1)
+        let hours = Int(match.2) ?? 0
+        let minutes = Int(match.3) ?? 0
+        
+        let totalSeconds = (hours * 3600) + (minutes * 60)
+        let offsetSeconds = sign == "+" ? totalSeconds : -totalSeconds
+        
+        return TimeZone(secondsFromGMT: offsetSeconds)
     }
     
     private func readGeotagFromMetadata(_ metadata: [CFString: Any]) -> Geotag? {
