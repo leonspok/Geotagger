@@ -7,7 +7,7 @@ let package = Package(
     name: "Geotagger",
     platforms: [
         .macOS(.v13),
-        .iOS(.v15)
+        .iOS(.v16)
     ],
     products: [
         .executable(
