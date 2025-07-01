@@ -6,7 +6,8 @@ import PackageDescription
 let package = Package(
     name: "Geotagger",
     platforms: [
-        .macOS(.v13)
+        .macOS(.v13),
+        .iOS(.v15)
     ],
     products: [
         .executable(
@@ -20,7 +21,7 @@ let package = Package(
         .library(
             name: "PhotoKitGeotagger",
             targets: ["PhotoKitGeotagger"]
-        ),
+        )
     ],
     dependencies: [
         .package(url: "https://github.com/vincentneo/CoreGPX", .upToNextMinor(from: "0.9.0")),
@@ -54,6 +55,6 @@ let package = Package(
                 "Geotagger",
                 "CLI"
             ]
-        ),
+        )
     ]
 )
