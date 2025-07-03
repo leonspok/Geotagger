@@ -14,17 +14,17 @@ public final class ImageIOGeoAnchorsLoader: GeoAnchorsLoaderProtocol {
         self.photoURLs = photoURLs
         self.imageIOReader = imageIOReader
     }
-    
+
     // MARK: - GeoAnchorsLoaderProtocol
-    
+
     public func loadAnchors() throws -> [GeoAnchor] {
         return self.photoURLs.compactMap { url in
             return try? self.imageIOReader.readGeoAnchorFromPhoto(at: url)
         }
     }
-    
+
     // MARK: - Private properties
-    
+
     private let photoURLs: [URL]
     private let imageIOReader: ImageIOReaderProtocol
 }

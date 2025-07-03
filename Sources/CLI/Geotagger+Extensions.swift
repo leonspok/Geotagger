@@ -19,7 +19,7 @@ extension Geotagger {
             }
         }
     }
-    
+
     func loadAnchorsFromGPXFilesFromDirectory(_ directoryURL: URL,
                                               scanSubdirectories: Bool = false,
                                               timeOffset: TimeInterval? = nil) throws {
@@ -28,7 +28,7 @@ extension Geotagger {
             .filter(\.isGPXFileURL)
         try self.loadAnchorsFromGPXFiles(at: gpxURLs, timeOffset: timeOffset)
     }
-    
+
     func loadAnchorsFromPhotos(at urls: [URL], timeOffset: TimeInterval? = nil) throws {
         let imageReader = ImageIOReader()
         let imagesAnchorsLoader = ImageIOGeoAnchorsLoader(photoURLs: urls, imageIOReader: imageReader)
@@ -38,7 +38,7 @@ extension Geotagger {
             try self.loadAnchors(with: imagesAnchorsLoader)
         }
     }
-    
+
     func loadAnchorsFromPhotosFromDirectoryAt(_ directoryURL: URL,
                                               scanSubdirectories: Bool = false,
                                               timeOffset: TimeInterval? = nil) throws {
@@ -51,7 +51,7 @@ extension Geotagger {
 
 extension Geotagger {
     typealias SaveToClosure = (URL) -> URL
-    
+
     func tagPhotos(at urls: [URL],
                    includeAlreadyTagged: Bool = false,
                    counter: GeotaggingCounter? = nil,
@@ -84,7 +84,7 @@ extension Geotagger {
         print("Found \(geotaggingItems.count) items to tag")
         try await self.tag(geotaggingItems)
     }
-    
+
     func tagPhotosInDirectoryAt(_ directoryURL: URL,
                                 scanSubdirectories: Bool = false,
                                 outputDirectoryURL: URL? = nil,

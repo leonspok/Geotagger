@@ -21,7 +21,7 @@ extension CircularCoordinate {
             return radians * 180 / .pi
         }
     }
-    
+
     public var radians: Double {
         switch self {
         case .degrees(let degrees):

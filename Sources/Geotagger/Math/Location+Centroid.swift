@@ -19,23 +19,23 @@ func calculateCentroid(of weightedLocations: [(location: Location, weight: Doubl
             return result + altitudeWithWeight.altitude * altitudeWithWeight.weight / altitudesWeightsSum
         }
     }()
-    
+
     let weightsSum = weightedLocations.map(\.weight).reduce(0, +)
     let cartesianCentroid: (x: Double, y: Double, z: Double) = weightedLocations.reduce((x: 0, y: 0, z: 0)) { result, weightedLocation in
         let latitudeRads = weightedLocation.location.latitude.radians
         let longitudeRads = weightedLocation.location.longitude.radians
         let weight = weightedLocation.weight / weightsSum
-        
+
         return (
             x: result.x + cos(latitudeRads) * cos(longitudeRads) * weight,
             y: result.y + cos(latitudeRads) * sin(longitudeRads) * weight,
             z: result.z + sin(latitudeRads) * weight
         )
     }
-    
+
     let longitudeRads = atan2(cartesianCentroid.y, cartesianCentroid.x)
     let latitudeRads = atan2(cartesianCentroid.z, sqrt(pow(cartesianCentroid.x, 2) + pow(cartesianCentroid.y, 2)))
-    
+
     return Location(
         latitude: .radians(latitudeRads),
         longitude: .radians(longitudeRads),

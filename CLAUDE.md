@@ -55,3 +55,7 @@ The project separates library functionality from the CLI interface:
 - **CoreGPX** (0.9.0): GPX file parsing
 - **swift-argument-parser** (1.1.1): CLI interface
 - Minimum Swift 5.5, macOS 11.0+
+
+## Release Process
+
+- When making a new release, create a tag before the binary because release.sh uses most recent tag to get version number.

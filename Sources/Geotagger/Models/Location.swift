@@ -8,11 +8,11 @@
 import Foundation
 
 public struct Location: Hashable, Sendable {
-    
+
     public var latitude: CircularCoordinate
     public var longitude: CircularCoordinate
     public var altitude: Altitude?
-    
+
     var debugInfo: String {
         return [
             "lat=\(self.latitude.degrees)",
@@ -20,7 +20,7 @@ public struct Location: Hashable, Sendable {
             (self.altitude != nil ? "alt=\(self.altitude!.value)" : nil)
         ].compactMap({ $0 }).joined(separator: ",")
     }
-    
+
     public init(latitude: CircularCoordinate,
                 longitude: CircularCoordinate,
                 altitude: Altitude? = nil) {
@@ -39,4 +39,3 @@ extension Location {
         )
     }
 }
-

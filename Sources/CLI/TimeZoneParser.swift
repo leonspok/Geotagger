@@ -13,7 +13,7 @@ extension TimeAdjustmentSaveMode: ExpressibleByArgument {
     public init?(argument: String) {
         self.init(rawValue: argument)
     }
-    
+
     public static var allValueStrings: [String] {
         return allCases.map(\.rawValue)
     }
@@ -30,7 +30,7 @@ extension String {
         if self == "Z" {
             return 0
         }
-        
+
         // Try to parse as GMT offset format (+05:00, -08:00)
         let gmtPattern = /^([+-])(\d{2}):(\d{2})$/
         if let match = self.firstMatch(of: gmtPattern) {
@@ -40,16 +40,16 @@ extension String {
                   minutes >= 0 && minutes < 60 else {
                 return nil
             }
-            
+
             let totalSeconds = (hours * 3600) + (minutes * 60)
             return match.1 == "+" ? totalSeconds : -totalSeconds
         }
-        
+
         // Try to create TimeZone from abbreviation or identifier
         if let timeZone = TimeZone(abbreviation: self) ?? TimeZone(identifier: self) {
             return timeZone.secondsFromGMT(for: date)
         }
-        
+
         return nil
     }
 }
