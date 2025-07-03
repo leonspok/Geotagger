@@ -25,7 +25,7 @@ final class GeotaggingCounter: @unchecked Sendable {
             $0 += 1
         }
     }
-    
+
     func incrementSkipped() {
         self._skipped.withLock {
             $0 += 1

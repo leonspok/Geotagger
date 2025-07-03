@@ -29,16 +29,16 @@ public struct GeotagFinder: Sendable {
         guard let date = try item.date else {
             throw GeotaggingError.canNotReadDateInformation
         }
-        
+
         var error: GeotaggingError
-                
+
         let exactCandidates = self.findClosestAnchors(to: date, in: anchors, timeRange: self.exactMatchTimeRange)
         if exactCandidates.isEmpty {
             error = GeotaggingError.notEnoughGeoAnchorCandidates
         } else {
             return self.calculateExactGeotag(for: date, from: exactCandidates)
         }
-        
+
         if let interpolationMatchTolerance = self.interpolationMatchTimeRange {
             if let interpolateCandidates = self.findAnchorsForInterpolation(for: date, in: anchors, timeRange: interpolationMatchTolerance) {
                 return self.calculateInterpolatedGeotag(for: date, with: interpolateCandidates.first, and: interpolateCandidates.second)
@@ -46,12 +46,12 @@ public struct GeotagFinder: Sendable {
                 error = GeotaggingError.notEnoughGeoAnchorCandidates
             }
         }
-        
+
         throw error
     }
-    
+
     // MARK: - Private methods
-    
+
     private func findClosestAnchors(to date: Date, in anchors: [GeoAnchor], timeRange: TimeInterval) -> [GeoAnchor] {
         let anchorsWithinRadius = self.findAllAnchors(around: date, in: anchors, radius: timeRange)
         guard let closestAnchor = anchorsWithinRadius.min(by: { abs($0.date.timeIntervalSince(date)) < abs($1.date.timeIntervalSince(date)) }) else {
@@ -59,7 +59,7 @@ public struct GeotagFinder: Sendable {
         }
         return anchorsWithinRadius.filter({ $0.date == closestAnchor.date })
     }
-    
+
     private func findAnchorsForInterpolation(for date: Date, in anchors: [GeoAnchor], timeRange: TimeInterval) -> (first: GeoAnchor, second: GeoAnchor)? {
         let interpolateCandidates = self.findAllAnchors(around: date, in: anchors, radius: timeRange)
         if let lastBefore = interpolateCandidates.last(where: { $0.date < date }), let firstAfter = interpolateCandidates.first(where: { $0.date > date }) {
@@ -73,11 +73,11 @@ public struct GeotagFinder: Sendable {
             return (first: candidates[0], second: candidates[1])
         }
     }
-    
+
     private func findAllAnchors(around date: Date, in anchors: [GeoAnchor], radius: TimeInterval) -> [GeoAnchor] {
         return anchors.filter({ abs($0.date.timeIntervalSince(date)) <= radius })
     }
-    
+
     private func calculateExactGeotag(for date: Date, from anchors: [GeoAnchor]) -> Geotag {
         assert(anchors.isEmpty == false, "Anchors list should not be empty")
         let normalizedAnchors = anchors.map({ GeoAnchor(date: $0.date, location: $0.location.based(on: self.locationReferences)) })
@@ -85,7 +85,7 @@ public struct GeotagFinder: Sendable {
             location: calculateCentroid(of: normalizedAnchors.map({ (location: $0.location, weight: 1.0) }))
         )
     }
-    
+
     private func calculateInterpolatedGeotag(for date: Date, with firstAnchor: GeoAnchor, and secondAnchor: GeoAnchor) -> Geotag {
         let firstLocation = firstAnchor.location.based(on: self.locationReferences)
         let secondLocation = secondAnchor.location.based(on: self.locationReferences)
@@ -107,4 +107,3 @@ extension GeotagFinder {
         }
     }
 }
-

@@ -9,7 +9,7 @@ import Foundation
 import Geotagger
 
 struct LoggingGeotaggingItem: WritableGeotaggingItemProtocol {
-    
+
     private let item: WritableGeotaggingItemProtocol
     private let counter: GeotaggingCounter?
     private let verbose: Bool
@@ -21,19 +21,19 @@ struct LoggingGeotaggingItem: WritableGeotaggingItemProtocol {
         self.counter = counter
         self.verbose = verbose
     }
-    
+
     // MARK: - GeotaggingItemProtocol
-    
+
     var id: String {
         return self.item.id
     }
-    
+
     var date: Date? {
         get throws {
             return try self.item.date
         }
     }
-    
+
     func apply(_ geotag: Geotag) async throws {
         do {
             try await self.item.apply(geotag)
@@ -43,7 +43,7 @@ struct LoggingGeotaggingItem: WritableGeotaggingItemProtocol {
             throw error
         }
     }
-    
+
     func skip(with error: Error) async throws {
         do {
             try await self.item.skip(with: error)
@@ -73,7 +73,7 @@ struct LoggingGeotaggingItem: WritableGeotaggingItemProtocol {
             self.counter?.incrementSkipped()
         }
     }
-    
+
     private func logError(_ message: String, error: Error) {
         Task { @MainActor in
             if self.verbose {

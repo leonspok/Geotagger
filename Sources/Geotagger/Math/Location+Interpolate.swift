@@ -17,14 +17,14 @@ func calculateInterpolatedLocation(between firstLocation: Location, and secondLo
         let value = firstAltitude.value + (secondAltitude.value - firstAltitude.value) * ratio
         return Altitude(value: value, reference: 0)
     }()
-    
+
     let bearing: Double = {
         let dl = secondLocation.longitude.radians - firstLocation.longitude.radians
         let x = cos(secondLocation.latitude.radians) * sin(dl)
         let y = cos(firstLocation.latitude.radians) * sin(secondLocation.latitude.radians) - sin(firstLocation.latitude.radians) * cos(secondLocation.latitude.radians) * cos(dl)
         return atan2(x, y)
     }()
-        
+
     // Haversine formula
     let angularDistance: Double = {
         let lat1 = firstLocation.latitude.radians
@@ -34,15 +34,15 @@ func calculateInterpolatedLocation(between firstLocation: Location, and secondLo
         let a = pow(sin(dLat / 2), 2) + cos(lat1) * cos(lat2) * pow(sin(dLon / 2), 2)
         return 2 * atan2(sqrt(a), sqrt(1 - a))
     }()
-        
+
     let interpolatedDistance = angularDistance * ratio
-    
+
     let lat1 = firstLocation.latitude.radians
     let lon1 = firstLocation.longitude.radians
-    
+
     let latF = asin(sin(lat1) * cos(interpolatedDistance) + cos(lat1) * sin(interpolatedDistance) * cos(bearing))
     let lonF = lon1 + atan2(sin(bearing) * sin(interpolatedDistance) * cos(lat1), cos(interpolatedDistance) - sin(lat1) * sin(latF))
-    
+
     return Location(
         latitude: .radians(latF),
         longitude: .radians(lonF),

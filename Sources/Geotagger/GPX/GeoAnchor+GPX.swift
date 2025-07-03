@@ -9,9 +9,9 @@ import Foundation
 import CoreGPX
 
 extension GeoAnchor {
-    
+
     // MARK: - Reading
-    
+
     public init?(gpxWaypoint: GPXWaypoint) {
         guard let time = gpxWaypoint.time,
               let latitude = gpxWaypoint.latitude,

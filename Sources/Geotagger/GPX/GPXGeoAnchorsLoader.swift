@@ -13,9 +13,9 @@ public final class GPXGeoAnchorsLoader: GeoAnchorsLoaderProtocol {
     public init(gpxFileURL: URL) {
         self.gpxFileURL = gpxFileURL
     }
-    
+
     // MARK: - GeoAnchorsLoaderProtocol
-    
+
     public func loadAnchors() throws -> [GeoAnchor] {
         guard let gpxParser = GPXParser(withURL: self.gpxFileURL) else {
             throw GPXError.invalidFile
@@ -28,8 +28,8 @@ public final class GPXGeoAnchorsLoader: GeoAnchorsLoaderProtocol {
             return GeoAnchor(gpxWaypoint: waypoint)
         }
     }
-    
+
     // MARK: - Private properties
-    
+
     private let gpxFileURL: URL
 }

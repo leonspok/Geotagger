@@ -9,9 +9,9 @@ import Foundation
 import ImageIO
 
 extension Geotag {
-    
+
     // MARK: - Reading
-    
+
     public init?(gpsDictionary: [CFString: Any]) {
         guard let longitude = Self.readLongitude(from: gpsDictionary),
               let latitude = Self.readLatitude(from: gpsDictionary) else {
@@ -25,7 +25,7 @@ extension Geotag {
             )
         )
     }
-    
+
     private static func readLongitude(from gpsDictionary: [CFString: Any]) -> CircularCoordinate? {
         guard let value = (gpsDictionary[kCGImagePropertyGPSLongitude] as? NSNumber)?.doubleValue else {
             return nil
@@ -36,14 +36,14 @@ extension Geotag {
         }
         return .degrees(value)
     }
-    
+
     private static func readLatitude(from gpsDictionary: [CFString: Any]) -> CircularCoordinate? {
         guard let value = (gpsDictionary[kCGImagePropertyGPSLatitude] as? NSNumber)?.doubleValue else {
             return nil
         }
         return .degrees(value)
     }
-    
+
     private static func readAltitude(from gpsDictionary: [CFString: Any]) -> Altitude? {
         guard let value = (gpsDictionary[kCGImagePropertyGPSAltitude] as? NSNumber)?.doubleValue else {
             return nil
@@ -53,9 +53,9 @@ extension Geotag {
             reference: (gpsDictionary[kCGImagePropertyGPSAltitudeRef] as? NSNumber)?.doubleValue ?? 0
         )
     }
-    
+
     // MARK: - Writing
-    
+
     public var asGPSDictionary: [CFString: Any] {
         var dictionary: [CFString: Any] = [
             kCGImagePropertyGPSLatitude: abs(self.location.latitude.degrees) as NSNumber,

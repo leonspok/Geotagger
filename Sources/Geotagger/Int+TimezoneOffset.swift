@@ -14,11 +14,11 @@ extension Int {
         if self == 0 {
             return "Z"
         }
-        
+
         let hours = abs(self) / 3600
         let minutes = (abs(self) % 3600) / 60
         let sign = self >= 0 ? "+" : "-"
-        
+
         return String(format: "%@%02d:%02d", sign, hours, minutes)
     }
 }

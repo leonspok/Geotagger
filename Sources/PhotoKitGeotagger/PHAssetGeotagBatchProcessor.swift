@@ -12,7 +12,7 @@ import Geotagger
 public struct PHAssetGeotagResult {
     public let asset: PHAsset
     public let result: Result<Geotag, Error>
-    
+
     public init(asset: PHAsset, result: Result<Geotag, Error>) {
         self.asset = asset
         self.result = result
@@ -21,29 +21,29 @@ public struct PHAssetGeotagResult {
 
 public actor PHAssetGeotagBatchProcessor {
     // MARK: - Private types
-    
+
     private struct PendingRequest {
         let asset: PHAsset
         let geotag: Geotag?
         let adjustedDate: Date?
         let continuation: CheckedContinuation<Void, Error>
     }
-    
+
     // MARK: - Private properties
-    
+
     private let photoLibrary: PHPhotoLibrary
     private let batchDelay: TimeInterval
-    
+
     private var pendingRequests: [PendingRequest] = []
     private var processingTask: Task<Void, Never>?
-    
+
     // MARK: - Public API
-    
+
     public init(photoLibrary: PHPhotoLibrary, batchDelay: TimeInterval = 3.0) {
         self.photoLibrary = photoLibrary
         self.batchDelay = batchDelay
     }
-    
+
     public func recordGeotag(asset: PHAsset, geotag: Geotag, adjustedDate: Date? = nil) async throws {
         try await withCheckedThrowingContinuation { continuation in
             let request = PendingRequest(
@@ -56,7 +56,7 @@ public actor PHAssetGeotagBatchProcessor {
             self.scheduleProcessing()
         }
     }
-    
+
     public func recordTimeAdjustment(asset: PHAsset, adjustedDate: Date) async throws {
         try await withCheckedThrowingContinuation { continuation in
             let request = PendingRequest(
@@ -69,21 +69,21 @@ public actor PHAssetGeotagBatchProcessor {
             self.scheduleProcessing()
         }
     }
-    
+
     // MARK: - Private methods
-    
+
     private func scheduleProcessing() {
         // Cancel existing processing task if any
         self.processingTask?.cancel()
-        
+
         // Create new processing task with delay
         self.processingTask = Task {
             do {
                 try await Task.sleep(nanoseconds: UInt64(self.batchDelay * 1_000_000_000))
-                
+
                 // Check if task was cancelled
                 guard !Task.isCancelled else { return }
-                
+
                 // Process the batch
                 await self.processBatch()
             } catch {
@@ -91,7 +91,7 @@ public actor PHAssetGeotagBatchProcessor {
             }
         }
     }
-    
+
     private func processBatch() async {
         // Collect all pending requests and continuations
         let requestsToProcess = self.pendingRequests
@@ -104,12 +104,12 @@ public actor PHAssetGeotagBatchProcessor {
         guard !requestsToProcess.isEmpty else {
             return
         }
-        
+
         do {
             try await self.photoLibrary.performChanges { [requestsToProcess] in
                 for request in requestsToProcess {
                     let changeRequest = PHAssetChangeRequest(for: request.asset)
-                    
+
                     // Apply geotag if provided
                     if let geotag = request.geotag {
                         changeRequest.location = CLLocation(
@@ -123,14 +123,14 @@ public actor PHAssetGeotagBatchProcessor {
                             timestamp: request.adjustedDate ?? request.asset.creationDate ?? Date()
                         )
                     }
-                    
+
                     // Apply adjusted date if provided
                     if let adjustedDate = request.adjustedDate {
                         changeRequest.creationDate = adjustedDate
                     }
                 }
             }
-            
+
             // If batch succeeds, resume all continuations
             for request in requestsToProcess {
                 request.continuation.resume()

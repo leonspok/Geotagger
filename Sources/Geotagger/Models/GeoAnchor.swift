@@ -10,7 +10,7 @@ import Foundation
 public struct GeoAnchor: Hashable, Sendable {
     public let date: Date
     public let location: Location
-    
+
     public init(date: Date,
                 location: Location) {
         self.date = date

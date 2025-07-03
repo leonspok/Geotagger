@@ -14,31 +14,31 @@ final class MockGeotaggingItem: WritableGeotaggingItemProtocol, @unchecked Senda
     private let lock = NSLock()
     private var _appliedGeotag: Geotag?
     private var _skipError: Error?
-    
+
     var date: Date? {
         return _date
     }
-    
+
     var appliedGeotag: Geotag? {
         lock.withLock { _appliedGeotag }
     }
-    
+
     var skipError: Error? {
         lock.withLock { _skipError }
     }
-    
-    init(id: String = UUID().uuidString, 
+
+    init(id: String = UUID().uuidString,
          date: Date? = Date()) {
         self.id = id
         self._date = date
     }
-    
+
     func apply(_ geotag: Geotag) async throws {
         lock.withLock {
             _appliedGeotag = geotag
         }
     }
-    
+
     func skip(with error: Error) async throws {
         lock.withLock {
             _skipError = error
