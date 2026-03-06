@@ -143,11 +143,11 @@ final class GeotagFinderTests: XCTestCase {
     // MARK: - Interpolation Tests
 
     func testInterpolationBetweenTwoAnchors() throws {
-        let finder = GeotagFinder(exactMatchTimeRange: 10, interpolationMatchTimeRange: 240)
+        let finder = GeotagFinder(exactMatchTimeRange: 10, interpolationMatchTimeRange: 6000)
         let item = createMockItem(date: baseDate)
         let anchors = [
-            createAnchor(secondsOffset: -100, lat: 52.0, lon: 13.0),
-            createAnchor(secondsOffset: 100, lat: 54.0, lon: 15.0)
+            createAnchor(secondsOffset: -2500, lat: 52.0, lon: 13.0),
+            createAnchor(secondsOffset: 2500, lat: 54.0, lon: 15.0)
         ]
 
         let geotag = try finder.findGeotag(for: item, using: anchors)
@@ -158,13 +158,13 @@ final class GeotagFinderTests: XCTestCase {
     }
 
     func testInterpolationRatioCalculation() throws {
-        let finder = GeotagFinder(exactMatchTimeRange: 10, interpolationMatchTimeRange: 240)
+        let finder = GeotagFinder(exactMatchTimeRange: 10, interpolationMatchTimeRange: 12000)
 
         // Test 25% interpolation
-        let item25 = createMockItem(date: baseDate.addingTimeInterval(25))
+        let item25 = createMockItem(date: baseDate.addingTimeInterval(2500))
         let anchors = [
             createAnchor(secondsOffset: 0, lat: 52.0, lon: 13.0),
-            createAnchor(secondsOffset: 100, lat: 56.0, lon: 17.0)
+            createAnchor(secondsOffset: 10000, lat: 56.0, lon: 17.0)
         ]
 
         let geotag25 = try finder.findGeotag(for: item25, using: anchors)
@@ -173,7 +173,7 @@ final class GeotagFinderTests: XCTestCase {
         XCTAssertEqual(geotag25.location.longitude.degrees, 14.0, accuracy: 0.1)
 
         // Test 75% interpolation
-        let item75 = createMockItem(date: baseDate.addingTimeInterval(75))
+        let item75 = createMockItem(date: baseDate.addingTimeInterval(7500))
         let geotag75 = try finder.findGeotag(for: item75, using: anchors)
         // 75% interpolation using great circle
         XCTAssertEqual(geotag75.location.latitude.degrees, 55.0, accuracy: 0.02)
@@ -181,11 +181,11 @@ final class GeotagFinderTests: XCTestCase {
     }
 
     func testInterpolationWhenNoExactMatch() throws {
-        let finder = GeotagFinder(exactMatchTimeRange: 10, interpolationMatchTimeRange: 240)
+        let finder = GeotagFinder(exactMatchTimeRange: 10, interpolationMatchTimeRange: 6000)
         let item = createMockItem(date: baseDate)
         let anchors = [
-            createAnchor(secondsOffset: -50, lat: 52.0, lon: 13.0),
-            createAnchor(secondsOffset: 50, lat: 54.0, lon: 15.0)
+            createAnchor(secondsOffset: -2500, lat: 52.0, lon: 13.0),
+            createAnchor(secondsOffset: 2500, lat: 54.0, lon: 15.0)
         ]
 
         let geotag = try finder.findGeotag(for: item, using: anchors)
@@ -196,13 +196,13 @@ final class GeotagFinderTests: XCTestCase {
     }
 
     func testInterpolationWithMultipleCandidates() throws {
-        let finder = GeotagFinder(exactMatchTimeRange: 10, interpolationMatchTimeRange: 240)
+        let finder = GeotagFinder(exactMatchTimeRange: 10, interpolationMatchTimeRange: 10000)
         let item = createMockItem(date: baseDate)
         let anchors = [
-            createAnchor(secondsOffset: -200, lat: 50.0, lon: 11.0),
-            createAnchor(secondsOffset: -50, lat: 52.0, lon: 13.0),
-            createAnchor(secondsOffset: 50, lat: 54.0, lon: 15.0),
-            createAnchor(secondsOffset: 200, lat: 56.0, lon: 17.0)
+            createAnchor(secondsOffset: -8000, lat: 50.0, lon: 11.0),
+            createAnchor(secondsOffset: -2500, lat: 52.0, lon: 13.0),
+            createAnchor(secondsOffset: 2500, lat: 54.0, lon: 15.0),
+            createAnchor(secondsOffset: 8000, lat: 56.0, lon: 17.0)
         ]
 
         let geotag = try finder.findGeotag(for: item, using: anchors)
@@ -213,12 +213,12 @@ final class GeotagFinderTests: XCTestCase {
     }
 
     func testInterpolationOnlyBeforeAnchors() throws {
-        let finder = GeotagFinder(exactMatchTimeRange: 10, interpolationMatchTimeRange: 240)
+        let finder = GeotagFinder(exactMatchTimeRange: 10, interpolationMatchTimeRange: 600)
         let item = createMockItem(date: baseDate)
         let anchors = [
-            createAnchor(secondsOffset: -100, lat: 52.0, lon: 13.0),
-            createAnchor(secondsOffset: -50, lat: 54.0, lon: 15.0),
-            createAnchor(secondsOffset: -30, lat: 56.0, lon: 17.0)
+            createAnchor(secondsOffset: -300, lat: 52.0, lon: 13.0),
+            createAnchor(secondsOffset: -150, lat: 52.02, lon: 13.02),
+            createAnchor(secondsOffset: -90, lat: 52.04, lon: 13.04)
         ]
 
         let geotag = try finder.findGeotag(for: item, using: anchors)
@@ -228,17 +228,17 @@ final class GeotagFinderTests: XCTestCase {
         // the result is reasonable
         XCTAssertNotNil(geotag.location)
         // Location should be extrapolated beyond the last anchor
-        XCTAssertTrue(geotag.location.latitude.degrees > 56.0)
-        XCTAssertTrue(geotag.location.longitude.degrees > 17.0)
+        XCTAssertTrue(geotag.location.latitude.degrees > 52.04)
+        XCTAssertTrue(geotag.location.longitude.degrees > 13.04)
     }
 
     func testInterpolationOnlyAfterAnchors() throws {
-        let finder = GeotagFinder(exactMatchTimeRange: 10, interpolationMatchTimeRange: 240)
+        let finder = GeotagFinder(exactMatchTimeRange: 10, interpolationMatchTimeRange: 600)
         let item = createMockItem(date: baseDate)
         let anchors = [
-            createAnchor(secondsOffset: 30, lat: 52.0, lon: 13.0),
-            createAnchor(secondsOffset: 50, lat: 54.0, lon: 15.0),
-            createAnchor(secondsOffset: 100, lat: 56.0, lon: 17.0)
+            createAnchor(secondsOffset: 90, lat: 52.0, lon: 13.0),
+            createAnchor(secondsOffset: 150, lat: 52.02, lon: 13.02),
+            createAnchor(secondsOffset: 300, lat: 52.04, lon: 13.04)
         ]
 
         let geotag = try finder.findGeotag(for: item, using: anchors)
@@ -285,6 +285,32 @@ final class GeotagFinderTests: XCTestCase {
         }
     }
 
+    func testInterpolationRejectedWhenImpliedSpeedExceeds200KmPerHour() throws {
+        let finder = GeotagFinder(exactMatchTimeRange: 0, interpolationMatchTimeRange: 240)
+        let item = createMockItem(date: baseDate)
+        let anchors = [
+            createAnchor(secondsOffset: -30, lat: 52.0, lon: 13.0),
+            createAnchor(secondsOffset: 30, lat: 53.0, lon: 13.0)
+        ]
+
+        XCTAssertThrowsError(try finder.findGeotag(for: item, using: anchors)) { error in
+            XCTAssertEqual(error as? GeotaggingError, .notEnoughGeoAnchorCandidates)
+        }
+    }
+
+    func testInterpolationAllowedWhenImpliedSpeedWithin200KmPerHour() throws {
+        let finder = GeotagFinder(exactMatchTimeRange: 0, interpolationMatchTimeRange: 7200)
+        let item = createMockItem(date: baseDate)
+        let anchors = [
+            createAnchor(secondsOffset: -1800, lat: 52.0, lon: 13.0),
+            createAnchor(secondsOffset: 1800, lat: 53.0, lon: 13.0)
+        ]
+
+        let geotag = try finder.findGeotag(for: item, using: anchors)
+        XCTAssertEqual(geotag.location.latitude.degrees, 52.5, accuracy: 0.02)
+        XCTAssertEqual(geotag.location.longitude.degrees, 13.0, accuracy: 0.02)
+    }
+
     func testInterpolationDisabled() throws {
         let finder = GeotagFinder(exactMatchTimeRange: 10, interpolationMatchTimeRange: nil)
         let item = createMockItem(date: baseDate)
@@ -317,11 +343,11 @@ final class GeotagFinderTests: XCTestCase {
     }
 
     func testExactMatchWithSmallerRange() throws {
-        let finder = GeotagFinder(exactMatchTimeRange: 30, interpolationMatchTimeRange: 240)
+        let finder = GeotagFinder(exactMatchTimeRange: 30, interpolationMatchTimeRange: 6000)
         let item = createMockItem(date: baseDate)
         let anchors = [
-            createAnchor(secondsOffset: 40, lat: 52.0, lon: 13.0),
-            createAnchor(secondsOffset: -40, lat: 54.0, lon: 15.0)
+            createAnchor(secondsOffset: 2500, lat: 52.0, lon: 13.0),
+            createAnchor(secondsOffset: -2500, lat: 54.0, lon: 15.0)
         ]
 
         let geotag = try finder.findGeotag(for: item, using: anchors)
