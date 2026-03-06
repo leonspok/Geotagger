@@ -9,6 +9,8 @@ import Foundation
 
 public struct GeotagFinder: Sendable {
 
+    private static let maxInterpolationAngularSpeedRadPerSecond = (300_000.0 / 3_600.0) / 6_371_000.0
+
     public init(
         exactMatchTimeRange: TimeInterval = 0,
         interpolationMatchTimeRange: TimeInterval? = nil,
@@ -41,7 +43,11 @@ public struct GeotagFinder: Sendable {
 
         if let interpolationMatchTolerance = self.interpolationMatchTimeRange {
             if let interpolateCandidates = self.findAnchorsForInterpolation(for: date, in: anchors, timeRange: interpolationMatchTolerance) {
-                return self.calculateInterpolatedGeotag(for: date, with: interpolateCandidates.first, and: interpolateCandidates.second)
+                if self.isInterpolationSafe(between: interpolateCandidates.first, and: interpolateCandidates.second) {
+                    return self.calculateInterpolatedGeotag(for: date, with: interpolateCandidates.first, and: interpolateCandidates.second)
+                } else {
+                    error = GeotaggingError.notEnoughGeoAnchorCandidates
+                }
             } else {
                 error = GeotaggingError.notEnoughGeoAnchorCandidates
             }
@@ -93,6 +99,31 @@ public struct GeotagFinder: Sendable {
         return Geotag(
             location: calculateInterpolatedLocation(between: firstLocation, and: secondLocation, ratio: ratio)
         )
+    }
+
+    private func isInterpolationSafe(between firstAnchor: GeoAnchor, and secondAnchor: GeoAnchor) -> Bool {
+        let duration = abs(secondAnchor.date.timeIntervalSince(firstAnchor.date))
+        guard duration > 0 else { return false }
+
+        let firstLocation = firstAnchor.location.based(on: self.locationReferences)
+        let secondLocation = secondAnchor.location.based(on: self.locationReferences)
+        let angularDistance = self.angularDistanceInRadians(between: firstLocation, and: secondLocation)
+        let maxAllowedAngularDistance = Self.maxInterpolationAngularSpeedRadPerSecond * duration
+
+        return angularDistance <= maxAllowedAngularDistance
+    }
+
+    private func angularDistanceInRadians(between firstLocation: Location, and secondLocation: Location) -> Double {
+        let lat1 = firstLocation.latitude.radians
+        let lon1 = firstLocation.longitude.radians
+        let lat2 = secondLocation.latitude.radians
+        let lon2 = secondLocation.longitude.radians
+
+        let dLat = lat2 - lat1
+        let dLon = lon2 - lon1
+        let a = pow(sin(dLat / 2), 2) + cos(lat1) * cos(lat2) * pow(sin(dLon / 2), 2)
+        let c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        return c
     }
 }
 
