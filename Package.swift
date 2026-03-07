@@ -53,7 +53,8 @@ let package = Package(
             name: "GeotaggerTests",
             dependencies: [
                 "Geotagger",
-                "CLI"
+                "CLI",
+                "PhotoKitGeotagger"
             ]
         )
     ]

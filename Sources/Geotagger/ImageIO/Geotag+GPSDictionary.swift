@@ -41,6 +41,10 @@ extension Geotag {
         guard let value = (gpsDictionary[kCGImagePropertyGPSLatitude] as? NSNumber)?.doubleValue else {
             return nil
         }
+        if let reference = gpsDictionary[kCGImagePropertyGPSLatitudeRef] as? String,
+           reference.lowercased() == "s" {
+            return .degrees(value * (-1))
+        }
         return .degrees(value)
     }
 
