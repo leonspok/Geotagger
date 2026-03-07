@@ -9,6 +9,27 @@ import Foundation
 import Photos
 import Geotagger
 
+enum PHAssetLocationBuilder {
+    private static let validHorizontalAccuracy = 1.0
+    private static let validVerticalAccuracy = 1.0
+
+    static func phAssetLocation(from geotag: Geotag, timestamp: Date) -> CLLocation {
+        let altitude = geotag.location.altitude?.value ?? 0
+        let verticalAccuracy = geotag.location.altitude == nil ? -1.0 : Self.validVerticalAccuracy
+
+        return CLLocation(
+            coordinate: CLLocationCoordinate2D(
+                latitude: geotag.location.latitude.degrees,
+                longitude: geotag.location.longitude.degrees
+            ),
+            altitude: altitude,
+            horizontalAccuracy: Self.validHorizontalAccuracy,
+            verticalAccuracy: verticalAccuracy,
+            timestamp: timestamp
+        )
+    }
+}
+
 public struct PHAssetGeotagResult {
     public let asset: PHAsset
     public let result: Result<Geotag, Error>
@@ -112,14 +133,8 @@ public actor PHAssetGeotagBatchProcessor {
 
                     // Apply geotag if provided
                     if let geotag = request.geotag {
-                        changeRequest.location = CLLocation(
-                            coordinate: CLLocationCoordinate2D(
-                                latitude: geotag.location.latitude.degrees,
-                                longitude: geotag.location.longitude.degrees
-                            ),
-                            altitude: geotag.location.altitude?.value ?? 0,
-                            horizontalAccuracy: kCLLocationAccuracyBest,
-                            verticalAccuracy: kCLLocationAccuracyBest,
+                        changeRequest.location = PHAssetLocationBuilder.phAssetLocation(
+                            from: geotag,
                             timestamp: request.adjustedDate ?? request.asset.creationDate ?? Date()
                         )
                     }

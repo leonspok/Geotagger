@@ -9,6 +9,25 @@ import Foundation
 import Photos
 import Geotagger
 
+enum PHAssetLocationMapper {
+    static func geotaggerLocation(from location: CLLocation) -> Location {
+        let coordinate = location.coordinate
+
+        return Location(
+            latitude: .degrees(coordinate.latitude),
+            longitude: .degrees(coordinate.longitude),
+            altitude: self.altitude(from: location)
+        )
+    }
+
+    static func altitude(from location: CLLocation) -> Altitude? {
+        guard location.verticalAccuracy >= 0 else {
+            return nil
+        }
+        return Altitude(value: location.altitude, reference: 0)
+    }
+}
+
 public class PHAssetGeoAnchorsLoader: GeoAnchorsLoaderProtocol {
     // MARK: - Private properties
 
@@ -29,18 +48,9 @@ public class PHAssetGeoAnchorsLoader: GeoAnchorsLoaderProtocol {
                 return nil
             }
 
-            let coordinate = location.coordinate
-            let altitude = location.altitude != 0 ? Altitude(value: location.altitude, reference: 0) : nil
-
-            let geoLocation = Location(
-                latitude: CircularCoordinate.degrees(coordinate.latitude),
-                longitude: CircularCoordinate.degrees(coordinate.longitude),
-                altitude: altitude
-            )
-
             return GeoAnchor(
                 date: creationDate,
-                location: geoLocation
+                location: PHAssetLocationMapper.geotaggerLocation(from: location)
             )
         }
     }

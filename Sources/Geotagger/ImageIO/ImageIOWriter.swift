@@ -49,6 +49,7 @@ public struct ImageIOWriter: ImageIOWriterProtocol {
             for (key, value) in geotag.asGPSDictionary {
                 CGImageMetadataSetValueMatchingImageProperty(mutableMetadata, kCGImagePropertyGPSDictionary, key, value as CFTypeRef)
             }
+            self.synchronizeXMPGPSMetadata(for: geotag, in: mutableMetadata)
         }
 
         // Apply timezone to EXIF metadata - priority: timezoneOverride > originalTimezone
@@ -118,6 +119,31 @@ extension ImageIOWriterProtocol {
 
 // MARK: - Private Methods
 extension ImageIOWriter {
+    private func synchronizeXMPGPSMetadata(for geotag: Geotag, in metadata: CGMutableImageMetadata) {
+        let latitude = geotag.location.latitude.degrees
+        let longitude = geotag.location.longitude.degrees
+
+        // ImageIO also emits XMP-exif GPS tags. For southern latitudes it serializes
+        // the coordinate string with an "N" suffix, which conflicts with the ref tag
+        // and confuses downstream apps. Overwrite the XMP GPS fields explicitly.
+        CGImageMetadataSetValueWithPath(metadata, nil, "exif:GPSLatitude" as CFString, self.xmpGPSCoordinateString(for: latitude, positiveDirection: "N", negativeDirection: "S") as CFTypeRef)
+        CGImageMetadataSetValueWithPath(metadata, nil, "exif:GPSLatitudeRef" as CFString, (latitude < 0 ? "S" : "N") as CFTypeRef)
+        CGImageMetadataSetValueWithPath(metadata, nil, "exif:GPSLongitude" as CFString, self.xmpGPSCoordinateString(for: longitude, positiveDirection: "E", negativeDirection: "W") as CFTypeRef)
+        CGImageMetadataSetValueWithPath(metadata, nil, "exif:GPSLongitudeRef" as CFString, (longitude < 0 ? "W" : "E") as CFTypeRef)
+    }
+
+    private func xmpGPSCoordinateString(for value: Double, positiveDirection: String, negativeDirection: String) -> String {
+        let absoluteValue = abs(value)
+        let degrees = Int(absoluteValue.rounded(.down))
+        let minutes = (absoluteValue - Double(degrees)) * 60
+        let direction = value < 0 ? negativeDirection : positiveDirection
+        return String(format: "%d,%.7f%@",
+                      locale: Locale(identifier: "en_US_POSIX"),
+                      degrees,
+                      minutes,
+                      direction)
+    }
+
     private func isValidTimezoneOffset(_ timezone: String) -> Bool {
         // Valid formats: "+05:00", "-08:00", "Z"
         if timezone == "Z" {
