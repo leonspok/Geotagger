@@ -93,4 +93,4 @@ iOSInjectionProject/
 **/*.DS_Store
 
 # Built binary
-geotagger
+/geotagger

@@ -86,6 +86,17 @@ public struct ImageIOWriter: ImageIOWriterProtocol {
         }
 
         guard let imageDestination = CGImageDestinationCreateWithURL(destinationURL as CFURL, sourceUTType, 1, nil) else {
+            if sourceURL.pathExtension.lowercased() == "cr3" {
+                let timezoneToWrite = timezoneOverride ?? originalTimezone
+                try CR3MetadataWriter().write(
+                    geotag: geotag,
+                    adjustedDate: adjustedDate,
+                    timezoneToWrite: timezoneToWrite,
+                    toPhotoAt: sourceURL,
+                    saveNewVersionAt: destinationURL
+                )
+                return
+            }
             throw ImageIOError.canNotCreateImageDestination
         }
 

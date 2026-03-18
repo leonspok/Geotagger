@@ -55,7 +55,8 @@ let package = Package(
                 "Geotagger",
                 "CLI",
                 "PhotoKitGeotagger"
-            ]
+            ],
+            resources: [.copy("Resources")]
         )
     ]
 )
