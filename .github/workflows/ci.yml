@@ -31,7 +31,7 @@ jobs:
       run: swift build
       
     - name: Run tests
-      run: swift test --parallel
+      run: swift test
       
     - name: Build release
       run: swift build -c release
