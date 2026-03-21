@@ -7,7 +7,7 @@
 
 import Foundation
 import Photos
-import Geotagger
+import GeotagKit
 
 enum PHAssetLocationBuilder {
     private static let validHorizontalAccuracy = 1.0

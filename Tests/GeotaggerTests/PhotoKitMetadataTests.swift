@@ -1,7 +1,7 @@
 import XCTest
 import CoreLocation
-@testable import Geotagger
-@testable import PhotoKitGeotagger
+@testable import GeotagKit
+@testable import PhotoKitGeotagging
 
 final class PhotoKitMetadataTests: XCTestCase {
 

@@ -7,7 +7,7 @@
 
 import Foundation
 import Photos
-import Geotagger
+import GeotagKit
 
 public final class PHAssetGeotaggingItem: @unchecked Sendable, WritableGeotaggingItemProtocol {
     // MARK: - Public API

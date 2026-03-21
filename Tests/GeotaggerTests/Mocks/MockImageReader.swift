@@ -6,9 +6,9 @@
 //
 
 import Foundation
-@testable import Geotagger
+@testable import GeotagKit
 
-final class MockImageIOReader: @unchecked Sendable, ImageIOReaderProtocol {
+final class MockImageReader: @unchecked Sendable, ImageFileReaderProtocol {
     func readDateFromPhoto(at url: URL) throws -> Date? {
         return Date()
     }

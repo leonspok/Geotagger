@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Geotagger
+import GeotagKit
 
 extension Geotagger {
     func loadAnchorsFromGPXFiles(at urls: [URL], timeOffset: TimeInterval? = nil) throws {
@@ -31,7 +31,7 @@ extension Geotagger {
 
     func loadAnchorsFromPhotos(at urls: [URL], timeOffset: TimeInterval? = nil) throws {
         let imageReader = ImageIOReader()
-        let imagesAnchorsLoader = ImageIOGeoAnchorsLoader(photoURLs: urls, imageIOReader: imageReader)
+        let imagesAnchorsLoader = ImageFileGeoAnchorsLoader(photoURLs: urls, imageReader: imageReader)
         if let timeOffset = timeOffset {
             try self.loadAnchors(with: TimeOffsetGeoAnchorsLoader(wrapping: imagesAnchorsLoader, timeOffset: timeOffset))
         } else {
@@ -61,7 +61,7 @@ extension Geotagger {
                    timeAdjustmentSaveMode: TimeAdjustmentSaveMode = .none,
                    saveTo: @escaping SaveToClosure = { $0 }) async throws {
         let imageReader = ImageIOReader()
-        let imageWriter = ImageIOWriter()
+        let imageWriter = CombinedImageFileWriter()
         let geotaggingItems = try urls.compactMap { url -> WritableGeotaggingItemProtocol? in
             if verbose {
                 print("Loading \(url.lastPathComponent)...")
@@ -70,11 +70,11 @@ extension Geotagger {
                (try imageReader.readGeotagFromPhoto(at: url)) != nil {
                 return nil
             }
-            let imageItem = ImageIOGeotaggingItem(
+            let imageItem = ImageFileGeotaggingItem(
                 photoURL: url,
                 outputURL: saveTo(url),
-                imageIOReader: imageReader,
-                imageIOWriter: imageWriter,
+                imageReader: imageReader,
+                imageWriter: imageWriter,
                 timeOffset: photoTimeOffset,
                 timezoneOverride: timezoneOverride,
                 timeAdjustmentSaveMode: timeAdjustmentSaveMode

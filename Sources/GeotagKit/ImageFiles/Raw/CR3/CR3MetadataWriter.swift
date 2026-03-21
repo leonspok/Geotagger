@@ -1,5 +1,9 @@
 import Foundation
 
+enum CR3MetadataError: Error {
+    case canNotFindCR3MetadataBox
+}
+
 /// Writes GPS and date/timezone metadata to CR3 files via in-place binary patching.
 ///
 /// ImageIO has no CR3 encoder, so `CGImageDestinationCreateWithURL` fails for CR3 output.
@@ -9,7 +13,9 @@ import Foundation
 /// - **XMP**: new `rdf:Description` block injected with GPS/date/timezone attributes
 ///
 /// No box sizes are changed, so CTBO/stco offset recalculation is not needed.
-struct CR3MetadataWriter: Sendable {
+public struct CR3MetadataWriter: Sendable, ImageFileWriterProtocol {
+
+    public init() {}
 
     /// Writes geotag, date, and timezone metadata to a CR3 file.
     ///
@@ -24,10 +30,11 @@ struct CR3MetadataWriter: Sendable {
     ///   - sourceURL: Path to the source CR3 file.
     ///   - destinationURL: Path where the patched CR3 file will be written.
     /// - Throws: ``ImageIOError/canNotFindCR3MetadataBox`` if the expected ISOBMFF structure is missing.
-    func write(
+    public func write(
         geotag: Geotag?,
+        timezoneOverride: String?,
+        originalTimezone: String?,
         adjustedDate: Date?,
-        timezoneToWrite: String?,
         toPhotoAt sourceURL: URL,
         saveNewVersionAt destinationURL: URL
     ) throws {
@@ -38,12 +45,13 @@ struct CR3MetadataWriter: Sendable {
         var data = try Data(contentsOf: destinationURL)
 
         guard let moovRange = findBoxRange(named: "moov", in: data, from: 0, to: data.count) else {
-            throw ImageIOError.canNotFindCR3MetadataBox
+            throw CR3MetadataError.canNotFindCR3MetadataBox
         }
         guard let canonRange = findCanonUUIDRange(in: data, searchFrom: moovRange.lowerBound + 8, to: moovRange.upperBound) else {
-            throw ImageIOError.canNotFindCR3MetadataBox
+            throw CR3MetadataError.canNotFindCR3MetadataBox
         }
 
+        let timezoneToWrite = timezoneOverride ?? originalTimezone
         let dateString: String? = adjustedDate.map { date in
             if let tz = timezoneToWrite, isValidTimezoneOffset(tz), let tzObj = parseTimezoneOffset(tz) {
                 let formatter = DateFormatter()
@@ -57,7 +65,7 @@ struct CR3MetadataWriter: Sendable {
 
         if let geotag = geotag {
             guard let cmt4Range = findBoxRange(named: "CMT4", in: data, from: canonRange.lowerBound, to: canonRange.upperBound) else {
-                throw ImageIOError.canNotFindCR3MetadataBox
+                throw CR3MetadataError.canNotFindCR3MetadataBox
             }
             let payloadStart = cmt4Range.lowerBound + 8
             let payloadSize = cmt4Range.count - 8
@@ -67,7 +75,7 @@ struct CR3MetadataWriter: Sendable {
 
         if dateString != nil || timezoneToWrite != nil {
             guard let cmt2Range = findBoxRange(named: "CMT2", in: data, from: canonRange.lowerBound, to: canonRange.upperBound) else {
-                throw ImageIOError.canNotFindCR3MetadataBox
+                throw CR3MetadataError.canNotFindCR3MetadataBox
             }
             let payloadStart = cmt2Range.lowerBound + 8
             let payloadSize = cmt2Range.count - 8
@@ -428,29 +436,5 @@ extension CR3MetadataWriter {
         data[offset + 1] = UInt8((value >> 8) & 0xFF)
         data[offset + 2] = UInt8((value >> 16) & 0xFF)
         data[offset + 3] = UInt8(value >> 24)
-    }
-}
-
-// MARK: - Timezone Helpers
-
-extension CR3MetadataWriter {
-
-    private func isValidTimezoneOffset(_ timezone: String) -> Bool {
-        if timezone == "Z" { return true }
-        let pattern = /^([+-])(\d{2}):(\d{2})$/
-        guard let match = timezone.firstMatch(of: pattern),
-              let hours = Int(match.2),
-              let minutes = Int(match.3) else { return false }
-        return hours >= 0 && hours <= 14 && (minutes == 0 || minutes == 15 || minutes == 30 || minutes == 45)
-    }
-
-    private func parseTimezoneOffset(_ timezoneString: String) -> TimeZone? {
-        if timezoneString == "Z" { return TimeZone(secondsFromGMT: 0) }
-        let pattern = /^([+-])(\d{2}):(\d{2})$/
-        guard let match = timezoneString.firstMatch(of: pattern) else { return nil }
-        let hours = Int(match.2) ?? 0
-        let minutes = Int(match.3) ?? 0
-        let totalSeconds = (hours * 3600) + (minutes * 60)
-        return TimeZone(secondsFromGMT: String(match.1) == "+" ? totalSeconds : -totalSeconds)
     }
 }

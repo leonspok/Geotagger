@@ -8,18 +8,11 @@
 import Foundation
 import ImageIO
 
-public protocol ImageIOReaderProtocol: Sendable {
-    func readDateFromPhoto(at url: URL) throws -> Date?
-    func readDateAndTimezoneFromPhoto(at url: URL) throws -> (Date?, String?)
-    func readGeotagFromPhoto(at url: URL) throws -> Geotag?
-    func readGeoAnchorFromPhoto(at url: URL) throws -> GeoAnchor?
-}
-
-public struct ImageIOReader: ImageIOReaderProtocol {
+public struct ImageIOReader: ImageFileReaderProtocol {
 
     public init() {}
 
-    // MARK: - ImageIOReaderProtocol
+    // MARK: - FileReaderProtocol
 
     public func readDateFromPhoto(at url: URL) throws -> Date? {
         let didAccess = url.startAccessingSecurityScopedResource()
@@ -127,7 +120,7 @@ public struct ImageIOReader: ImageIOReaderProtocol {
 
         // If timezone offset is available, recreate the date with proper timezone
         if let offsetString = timezoneOffset,
-           let timezone = self.parseTimezoneOffset(offsetString) {
+           let timezone = parseTimezoneOffset(offsetString) {
             // Extract components from the UTC-parsed date using UTC calendar
             var utcCalendar = Calendar.current
             utcCalendar.timeZone = TimeZone(secondsFromGMT: 0)!
@@ -173,7 +166,7 @@ public struct ImageIOReader: ImageIOReaderProtocol {
 
         // If timezone offset is available, recreate the date with proper timezone
         if let offsetString = timezoneOffset,
-           let timezone = self.parseTimezoneOffset(offsetString) {
+           let timezone = parseTimezoneOffset(offsetString) {
             // Extract components from the UTC-parsed date using UTC calendar
             var utcCalendar = Calendar.current
             utcCalendar.timeZone = TimeZone(secondsFromGMT: 0)!
@@ -184,30 +177,6 @@ public struct ImageIOReader: ImageIOReaderProtocol {
 
         // If no timezone info, return the UTC-parsed date (fallback behavior)
         return baseDate
-    }
-
-    private func parseTimezoneOffset(_ offsetString: String) -> TimeZone? {
-        let trimmed = offsetString.trimmingCharacters(in: .whitespaces)
-
-        // Handle "Z" for UTC
-        if trimmed == "Z" {
-            return TimeZone(secondsFromGMT: 0)
-        }
-
-        // Handle format like "+05:00" or "-08:00"
-        let regex = /^([+-])(\d{2}):(\d{2})$/
-        guard let match = trimmed.firstMatch(of: regex) else {
-            return nil
-        }
-
-        let sign = String(match.1)
-        let hours = Int(match.2) ?? 0
-        let minutes = Int(match.3) ?? 0
-
-        let totalSeconds = (hours * 3600) + (minutes * 60)
-        let offsetSeconds = sign == "+" ? totalSeconds : -totalSeconds
-
-        return TimeZone(secondsFromGMT: offsetSeconds)
     }
 
     private func readGeotagFromMetadata(_ metadata: [CFString: Any]) -> Geotag? {

@@ -6,8 +6,7 @@
 //
 
 import XCTest
-@testable import Geotagger
-@testable import CLI
+@testable import GeotagKit
 
 final class TimeOffsetTests: XCTestCase {
 
@@ -70,57 +69,57 @@ final class TimeOffsetTests: XCTestCase {
 
     func testTimezoneOffsetParsing() {
         // Test GMT offset format parsing
-        XCTAssertEqual("+05:00".parseAsTimezoneOffset(), 18000)  // +5 hours
-        XCTAssertEqual("-08:00".parseAsTimezoneOffset(), -28800) // -8 hours
-        XCTAssertEqual("+00:00".parseAsTimezoneOffset(), 0)      // UTC
-        XCTAssertEqual("+05:30".parseAsTimezoneOffset(), 19800)  // +5:30 hours (India)
-        XCTAssertEqual("-09:30".parseAsTimezoneOffset(), -34200) // -9:30 hours
-        XCTAssertEqual("Z".parseAsTimezoneOffset(), 0)           // UTC
+        XCTAssertEqual(parseAsTimezoneOffset("+05:00"), 18000)  // +5 hours
+        XCTAssertEqual(parseAsTimezoneOffset("-08:00"), -28800) // -8 hours
+        XCTAssertEqual(parseAsTimezoneOffset("+00:00"), 0)      // UTC
+        XCTAssertEqual(parseAsTimezoneOffset("+05:30"), 19800)  // +5:30 hours (India)
+        XCTAssertEqual(parseAsTimezoneOffset("-09:30"), -34200) // -9:30 hours
+        XCTAssertEqual(parseAsTimezoneOffset("Z"), 0)           // UTC
 
         // Test invalid GMT offset formats
-        XCTAssertNil("5:00".parseAsTimezoneOffset())    // Missing sign
-        XCTAssertNil("+5:00".parseAsTimezoneOffset())   // Wrong hour format
-        XCTAssertNil("+05:0".parseAsTimezoneOffset())   // Wrong minute format
-        XCTAssertNil("+25:00".parseAsTimezoneOffset())  // Invalid hour
-        XCTAssertNil("+05:60".parseAsTimezoneOffset())  // Invalid minute
-        XCTAssertNil("".parseAsTimezoneOffset())        // Empty string
+        XCTAssertNil(parseAsTimezoneOffset("5:00"))    // Missing sign
+        XCTAssertNil(parseAsTimezoneOffset("+5:00"))   // Wrong hour format
+        XCTAssertNil(parseAsTimezoneOffset("+05:0"))   // Wrong minute format
+        XCTAssertNil(parseAsTimezoneOffset("+25:00"))  // Invalid hour
+        XCTAssertNil(parseAsTimezoneOffset("+05:60"))  // Invalid minute
+        XCTAssertNil(parseAsTimezoneOffset(""))        // Empty string
 
         // Test common timezone abbreviations
-        XCTAssertNotNil("UTC".parseAsTimezoneOffset())
-        XCTAssertNotNil("GMT".parseAsTimezoneOffset())
+        XCTAssertNotNil(parseAsTimezoneOffset("UTC"))
+        XCTAssertNotNil(parseAsTimezoneOffset("GMT"))
 
         // US timezone abbreviations
-        XCTAssertNotNil("EST".parseAsTimezoneOffset())  // Eastern Standard Time
-        XCTAssertNotNil("EDT".parseAsTimezoneOffset())  // Eastern Daylight Time
-        XCTAssertNotNil("PST".parseAsTimezoneOffset())  // Pacific Standard Time
-        XCTAssertNotNil("PDT".parseAsTimezoneOffset())  // Pacific Daylight Time
-        XCTAssertNotNil("CST".parseAsTimezoneOffset())  // Central Standard Time
-        XCTAssertNotNil("CDT".parseAsTimezoneOffset())  // Central Daylight Time
-        XCTAssertNotNil("MST".parseAsTimezoneOffset())  // Mountain Standard Time
-        XCTAssertNotNil("MDT".parseAsTimezoneOffset())  // Mountain Daylight Time
+        XCTAssertNotNil(parseAsTimezoneOffset("EST"))  // Eastern Standard Time
+        XCTAssertNotNil(parseAsTimezoneOffset("EDT"))  // Eastern Daylight Time
+        XCTAssertNotNil(parseAsTimezoneOffset("PST"))  // Pacific Standard Time
+        XCTAssertNotNil(parseAsTimezoneOffset("PDT"))  // Pacific Daylight Time
+        XCTAssertNotNil(parseAsTimezoneOffset("CST"))  // Central Standard Time
+        XCTAssertNotNil(parseAsTimezoneOffset("CDT"))  // Central Daylight Time
+        XCTAssertNotNil(parseAsTimezoneOffset("MST"))  // Mountain Standard Time
+        XCTAssertNotNil(parseAsTimezoneOffset("MDT"))  // Mountain Daylight Time
 
         // European timezone abbreviations
-        XCTAssertNotNil("CET".parseAsTimezoneOffset())  // Central European Time
-        XCTAssertNotNil("CEST".parseAsTimezoneOffset()) // Central European Summer Time
-        XCTAssertNotNil("WET".parseAsTimezoneOffset())  // Western European Time
-        XCTAssertNotNil("WEST".parseAsTimezoneOffset()) // Western European Summer Time
+        XCTAssertNotNil(parseAsTimezoneOffset("CET"))  // Central European Time
+        XCTAssertNotNil(parseAsTimezoneOffset("CEST")) // Central European Summer Time
+        XCTAssertNotNil(parseAsTimezoneOffset("WET"))  // Western European Time
+        XCTAssertNotNil(parseAsTimezoneOffset("WEST")) // Western European Summer Time
 
         // Other common abbreviations
-        XCTAssertNotNil("JST".parseAsTimezoneOffset())  // Japan Standard Time
+        XCTAssertNotNil(parseAsTimezoneOffset("JST"))  // Japan Standard Time
 
         // Test timezone identifiers
-        XCTAssertNotNil("America/New_York".parseAsTimezoneOffset())
-        XCTAssertNotNil("America/Los_Angeles".parseAsTimezoneOffset())
-        XCTAssertNotNil("America/Chicago".parseAsTimezoneOffset())
-        XCTAssertNotNil("America/Denver".parseAsTimezoneOffset())
-        XCTAssertNotNil("Europe/London".parseAsTimezoneOffset())
-        XCTAssertNotNil("Europe/Paris".parseAsTimezoneOffset())
-        XCTAssertNotNil("Europe/Berlin".parseAsTimezoneOffset())
-        XCTAssertNotNil("Asia/Tokyo".parseAsTimezoneOffset())
-        XCTAssertNotNil("Australia/Sydney".parseAsTimezoneOffset())
+        XCTAssertNotNil(parseAsTimezoneOffset("America/New_York"))
+        XCTAssertNotNil(parseAsTimezoneOffset("America/Los_Angeles"))
+        XCTAssertNotNil(parseAsTimezoneOffset("America/Chicago"))
+        XCTAssertNotNil(parseAsTimezoneOffset("America/Denver"))
+        XCTAssertNotNil(parseAsTimezoneOffset("Europe/London"))
+        XCTAssertNotNil(parseAsTimezoneOffset("Europe/Paris"))
+        XCTAssertNotNil(parseAsTimezoneOffset("Europe/Berlin"))
+        XCTAssertNotNil(parseAsTimezoneOffset("Asia/Tokyo"))
+        XCTAssertNotNil(parseAsTimezoneOffset("Australia/Sydney"))
 
         // Test invalid timezone
-        XCTAssertNil("INVALID_TIMEZONE".parseAsTimezoneOffset())
+        XCTAssertNil(parseAsTimezoneOffset("INVALID_TIMEZONE"))
     }
 
     // MARK: - ImageIOWriter Timezone Formatting Tests
@@ -222,22 +221,22 @@ final class TimeOffsetTests: XCTestCase {
         // Test the complete flow: photo with timezone → time adjustment → preserved timezone
 
         // 1. Mock ImageIOReader that returns timezone info
-        let mockReader = TestImageIOReader(
+        let mockReader = TestImageReader(
             dateAndTimezone: (baseDate, "+02:00")
         )
 
         // 2. Mock ImageIOWriter to capture what gets written
-        let mockWriter = TestImageIOWriter()
+        let mockWriter = TestImageWriter()
 
         // 3. Create ImageIOGeotaggingItem
         let photoURL = URL(fileURLWithPath: "/test/photo.jpg")
         let outputURL = URL(fileURLWithPath: "/test/output.jpg")
 
-        let item = ImageIOGeotaggingItem(
+        let item = ImageFileGeotaggingItem(
             photoURL: photoURL,
             outputURL: outputURL,
-            imageIOReader: mockReader,
-            imageIOWriter: mockWriter,
+            imageReader: mockReader,
+            imageWriter: mockWriter,
             timeOffset: 30 * 60, // 30 minutes
             timezoneOverride: nil,
             timeAdjustmentSaveMode: .all
@@ -258,19 +257,19 @@ final class TimeOffsetTests: XCTestCase {
     func testTimezoneOverrideTakesPrecedence() async throws {
         // Test that timezoneOverride takes precedence over original timezone
 
-        let mockReader = TestImageIOReader(
+        let mockReader = TestImageReader(
             dateAndTimezone: (baseDate, "+02:00")
         )
-        let mockWriter = TestImageIOWriter()
+        let mockWriter = TestImageWriter()
 
         let photoURL = URL(fileURLWithPath: "/test/photo.jpg")
         let outputURL = URL(fileURLWithPath: "/test/output.jpg")
 
-        let item = ImageIOGeotaggingItem(
+        let item = ImageFileGeotaggingItem(
             photoURL: photoURL,
             outputURL: outputURL,
-            imageIOReader: mockReader,
-            imageIOWriter: mockWriter,
+            imageReader: mockReader,
+            imageWriter: mockWriter,
             timeOffset: nil,
             timezoneOverride: -8 * 3600, // -08:00 (PST)
             timeAdjustmentSaveMode: .all
@@ -298,7 +297,7 @@ private class MockGeoAnchorsLoader: GeoAnchorsLoaderProtocol {
     }
 }
 
-private final class TestImageIOReader: @unchecked Sendable, ImageIOReaderProtocol {
+private final class TestImageReader: @unchecked Sendable, ImageFileReaderProtocol {
     private let dateAndTimezone: (Date?, String?)
 
     init(dateAndTimezone: (Date?, String?)) {
@@ -322,7 +321,7 @@ private final class TestImageIOReader: @unchecked Sendable, ImageIOReaderProtoco
     }
 }
 
-private final class TestImageIOWriter: @unchecked Sendable, ImageIOWriterProtocol {
+private final class TestImageWriter: @unchecked Sendable, ImageFileWriterProtocol {
     struct WriterCall {
         let geotag: Geotag?
         let timezoneOverride: String?

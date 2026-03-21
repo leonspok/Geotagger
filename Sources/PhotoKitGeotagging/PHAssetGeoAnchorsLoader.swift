@@ -7,7 +7,7 @@
 
 import Foundation
 import Photos
-import Geotagger
+import GeotagKit
 
 enum PHAssetLocationMapper {
     static func geotaggerLocation(from location: CLLocation) -> Location {

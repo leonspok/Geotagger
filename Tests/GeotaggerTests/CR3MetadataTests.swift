@@ -2,7 +2,7 @@ import CoreGraphics
 import ImageIO
 import XCTest
 
-@testable import Geotagger
+@testable import GeotagKit
 
 final class CR3MetadataTests: XCTestCase {
 
@@ -93,7 +93,7 @@ final class CR3MetadataTests: XCTestCase {
         let source = try copyResourceToTemporaryDirectory("no_gps.cr3")
         let destination = source.deletingLastPathComponent().appendingPathComponent("tagged.cr3")
 
-        let writer = ImageIOWriter()
+        let writer = CombinedImageFileWriter()
         let geotag = Geotag(
             location: Location(
                 latitude: .degrees(60.17),
@@ -114,7 +114,7 @@ final class CR3MetadataTests: XCTestCase {
         let source = try copyResourceToTemporaryDirectory("no_gps.cr3")
         let destination = source.deletingLastPathComponent().appendingPathComponent("tagged.cr3")
 
-        let writer = ImageIOWriter()
+        let writer = CombinedImageFileWriter()
         let geotag = Geotag(
             location: Location(
                 latitude: .degrees(60.17),
@@ -139,7 +139,7 @@ final class CR3MetadataTests: XCTestCase {
         let source = try copyResourceToTemporaryDirectory("no_gps.cr3")
         let destination = source.deletingLastPathComponent().appendingPathComponent("tagged.cr3")
 
-        let writer = ImageIOWriter()
+        let writer = CombinedImageFileWriter()
         let geotag = Geotag(
             location: Location(
                 latitude: .degrees(-33.713525),
@@ -160,7 +160,7 @@ final class CR3MetadataTests: XCTestCase {
         let source = try copyResourceToTemporaryDirectory("no_gps.cr3")
         let destination = source.deletingLastPathComponent().appendingPathComponent("tagged.cr3")
 
-        let writer = ImageIOWriter()
+        let writer = CombinedImageFileWriter()
         let geotag = Geotag(
             location: Location(
                 latitude: .degrees(-33.713525),
@@ -194,7 +194,7 @@ final class CR3MetadataTests: XCTestCase {
         let source = try copyResourceToTemporaryDirectory("no_gps.cr3")
         let destination = source.deletingLastPathComponent().appendingPathComponent("tagged.cr3")
 
-        let writer = ImageIOWriter()
+        let writer = CombinedImageFileWriter()
         let geotag = Geotag(
             location: Location(
                 latitude: .degrees(60.17),
@@ -211,7 +211,7 @@ final class CR3MetadataTests: XCTestCase {
         let source = try copyResourceToTemporaryDirectory("no_gps.cr3")
         let destination = source.deletingLastPathComponent().appendingPathComponent("tagged.cr3")
 
-        let writer = ImageIOWriter()
+        let writer = CombinedImageFileWriter()
         let geotag = Geotag(
             location: Location(
                 latitude: .degrees(60.17),
@@ -240,7 +240,7 @@ final class CR3MetadataTests: XCTestCase {
         let originalDate = try reader.readDateFromPhoto(at: source)
         XCTAssertNotNil(originalDate, "Source CR3 should have a date")
 
-        let writer = ImageIOWriter()
+        let writer = CombinedImageFileWriter()
         let geotag = Geotag(
             location: Location(
                 latitude: .degrees(60.17),
@@ -266,7 +266,7 @@ final class CR3MetadataTests: XCTestCase {
         let firstWrite = tempDir.appendingPathComponent("first.cr3")
         let secondWrite = tempDir.appendingPathComponent("second.cr3")
 
-        let writer = ImageIOWriter()
+        let writer = CombinedImageFileWriter()
         let reader = ImageIOReader()
 
         let firstGeotag = Geotag(
@@ -298,7 +298,7 @@ final class CR3MetadataTests: XCTestCase {
         let source = try copyResourceToTemporaryDirectory("with_gps.cr3")
         let destination = source.deletingLastPathComponent().appendingPathComponent("retagged.cr3")
 
-        let writer = ImageIOWriter()
+        let writer = CombinedImageFileWriter()
         let newGeotag = Geotag(
             location: Location(
                 latitude: .degrees(48.8566),
@@ -327,7 +327,7 @@ final class CR3MetadataTests: XCTestCase {
         let originalDate = try XCTUnwrap(reader.readDateFromPhoto(at: source))
         let adjustedDate = originalDate.addingTimeInterval(3600) // +1 hour
 
-        let writer = ImageIOWriter()
+        let writer = CombinedImageFileWriter()
         try writer.writeTimeAdjustments(
             timezoneOverride: "+02:00",
             adjustedDate: adjustedDate,
@@ -347,7 +347,7 @@ final class CR3MetadataTests: XCTestCase {
         let reader = ImageIOReader()
         let originalDate = try XCTUnwrap(reader.readDateFromPhoto(at: source))
 
-        let writer = ImageIOWriter()
+        let writer = CombinedImageFileWriter()
         try writer.write(
             geotag: nil,
             timezoneOverride: "+02:00",
@@ -369,7 +369,7 @@ final class CR3MetadataTests: XCTestCase {
         let originalDate = try XCTUnwrap(reader.readDateFromPhoto(at: source))
         let adjustedDate = originalDate.addingTimeInterval(3600)
 
-        let writer = ImageIOWriter()
+        let writer = CombinedImageFileWriter()
         let geotag = Geotag(
             location: Location(
                 latitude: .degrees(60.17),
@@ -402,12 +402,12 @@ final class CR3MetadataTests: XCTestCase {
         let destination = source.deletingLastPathComponent().appendingPathComponent("pipeline.cr3")
 
         let reader = ImageIOReader()
-        let writer = ImageIOWriter()
-        let item = ImageIOGeotaggingItem(
+        let writer = CombinedImageFileWriter()
+        let item = ImageFileGeotaggingItem(
             photoURL: source,
             outputURL: destination,
-            imageIOReader: reader,
-            imageIOWriter: writer
+            imageReader: reader,
+            imageWriter: writer
         )
 
         let geotag = Geotag(
@@ -430,12 +430,12 @@ final class CR3MetadataTests: XCTestCase {
         let destination = source.deletingLastPathComponent().appendingPathComponent("pipeline_time.cr3")
 
         let reader = ImageIOReader()
-        let writer = ImageIOWriter()
-        let item = ImageIOGeotaggingItem(
+        let writer = CombinedImageFileWriter()
+        let item = ImageFileGeotaggingItem(
             photoURL: source,
             outputURL: destination,
-            imageIOReader: reader,
-            imageIOWriter: writer,
+            imageReader: reader,
+            imageWriter: writer,
             timeOffset: 3600, // +1 hour
             timezoneOverride: 7200, // +02:00
             timeAdjustmentSaveMode: .tagged
@@ -463,12 +463,12 @@ final class CR3MetadataTests: XCTestCase {
         let destination = source.deletingLastPathComponent().appendingPathComponent("pipeline_skip.cr3")
 
         let reader = ImageIOReader()
-        let writer = ImageIOWriter()
-        let item = ImageIOGeotaggingItem(
+        let writer = CombinedImageFileWriter()
+        let item = ImageFileGeotaggingItem(
             photoURL: source,
             outputURL: destination,
-            imageIOReader: reader,
-            imageIOWriter: writer,
+            imageReader: reader,
+            imageWriter: writer,
             timeOffset: 3600,
             timezoneOverride: 7200,
             timeAdjustmentSaveMode: .all
@@ -487,7 +487,7 @@ final class CR3MetadataTests: XCTestCase {
     func testCR3AsGeoAnchorSource() throws {
         let url = resourceURL("with_gps.cr3")
         let reader = ImageIOReader()
-        let loader = ImageIOGeoAnchorsLoader(photoURLs: [url], imageIOReader: reader)
+        let loader = ImageFileGeoAnchorsLoader(photoURLs: [url], imageReader: reader)
         let anchors = try loader.loadAnchors()
 
         XCTAssertEqual(anchors.count, 1, "Should load exactly one anchor from geotagged CR3")

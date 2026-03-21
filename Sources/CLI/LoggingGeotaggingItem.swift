@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Geotagger
+import GeotagKit
 
 struct LoggingGeotaggingItem: WritableGeotaggingItemProtocol {
 

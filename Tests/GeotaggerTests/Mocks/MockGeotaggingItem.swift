@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@testable import Geotagger
+@testable import GeotagKit
 
 final class MockGeotaggingItem: WritableGeotaggingItemProtocol, @unchecked Sendable {
     let id: String

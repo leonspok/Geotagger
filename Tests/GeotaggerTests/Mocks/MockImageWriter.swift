@@ -6,8 +6,8 @@
 //
 
 import Foundation
-@testable import Geotagger
+@testable import GeotagKit
 
-final class MockImageIOWriter: @unchecked Sendable, ImageIOWriterProtocol {
+final class MockImageWriter: @unchecked Sendable, ImageFileWriterProtocol {
     func write(geotag: Geotag?, timezoneOverride: String?, originalTimezone: String?, adjustedDate: Date?, toPhotoAt sourceURL: URL, saveNewVersionAt destinationURL: URL) throws {}
 }

@@ -15,12 +15,12 @@ let package = Package(
             targets: [ "CLI" ]
         ),
         .library(
-            name: "Geotagger",
-            targets: ["Geotagger"]
+            name: "GeotagKit",
+            targets: ["GeotagKit"]
         ),
         .library(
-            name: "PhotoKitGeotagger",
-            targets: ["PhotoKitGeotagger"]
+            name: "PhotoKitGeotagging",
+            targets: ["PhotoKitGeotagging"]
         )
     ],
     dependencies: [
@@ -33,28 +33,28 @@ let package = Package(
         .executableTarget(
             name: "CLI",
             dependencies: [
-                "Geotagger",
+                "GeotagKit",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ]
         ),
         .target(
-            name: "Geotagger",
+            name: "GeotagKit",
             dependencies: [
                 "CoreGPX"
             ]
         ),
         .target(
-            name: "PhotoKitGeotagger",
+            name: "PhotoKitGeotagging",
             dependencies: [
-                "Geotagger"
+                "GeotagKit"
             ]
         ),
         .testTarget(
             name: "GeotaggerTests",
             dependencies: [
-                "Geotagger",
+                "GeotagKit",
                 "CLI",
-                "PhotoKitGeotagger"
+                "PhotoKitGeotagging"
             ],
             resources: [.copy("Resources")]
         )

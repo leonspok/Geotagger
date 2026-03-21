@@ -2,7 +2,7 @@ import XCTest
 import CoreGraphics
 import ImageIO
 import UniformTypeIdentifiers
-@testable import Geotagger
+@testable import GeotagKit
 
 final class ImageIOGPSMetadataTests: XCTestCase {
 

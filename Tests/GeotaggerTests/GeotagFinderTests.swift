@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import Geotagger
+@testable import GeotagKit
 
 final class GeotagFinderTests: XCTestCase {
 

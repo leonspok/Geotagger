@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Geotagger
+import GeotagKit
 import ArgumentParser
 import Darwin
 import UniformTypeIdentifiers
@@ -71,7 +71,7 @@ struct GeoTaggerCLI: AsyncParsableCommand {
         // Parse timezone override
         let photosTimezoneOffsetSeconds: Int?
         if let timezoneString = self.photosTimezoneOverride {
-            if let parsedOffset = timezoneString.parseAsTimezoneOffset() {
+            if let parsedOffset = parseAsTimezoneOffset(timezoneString) {
                 photosTimezoneOffsetSeconds = parsedOffset
             } else {
                 print("Warning: Failed to parse timezone '\(timezoneString)'. Using original photo timezone.")
