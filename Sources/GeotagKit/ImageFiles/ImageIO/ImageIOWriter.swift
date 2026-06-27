@@ -87,7 +87,9 @@ public struct ImageIOWriter: ImageFileWriterProtocol {
 
         let options: [CFString: Any] = [
             kCGImageDestinationMetadata: mutableMetadata,
-            kCGImageDestinationMergeMetadata: true
+            // The metadata is already a mutable copy of the source metadata. Replacing
+            // it lets edited HEIC GPS fields overwrite existing values during copy.
+            kCGImageDestinationMergeMetadata: false
         ]
         CGImageDestinationCopyImageSource(imageDestination, imageSource, options as CFDictionary, nil)
     }
